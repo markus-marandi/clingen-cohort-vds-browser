@@ -74,11 +74,32 @@ info "patches applied"
 
 # ── 4. install node dependencies ──────────────────────────────────────────────
 
-info "installing graphql-api node dependencies..."
-(cd "${GNOMAD_BROWSER_DIR}/graphql-api" && pnpm install)
+PNPM_PACKAGES_DIR="/mnt/sdb/packages"
+mkdir -p "${PNPM_PACKAGES_DIR}"
 
-info "installing browser node dependencies..."
-(cd "${GNOMAD_BROWSER_DIR}/browser" && pnpm install)
+# redirect every pnpm directory off the boot disk:
+#   store-dir   - content-addressable package cache
+#   cache-dir   - http/metadata cache
+#   state-dir   - pnpm state (last-update checks etc.)
+# PNPM_HOME     - global bin / global packages
+#
+# link-workspace-packages resolves @gnomad/* from the local workspace
+# (browser/package.json uses "*" not "workspace:*").
+# shamefully-hoist avoids pnpm's virtual store chmod calls that fail on /mnt/sdb.
+info "installing node dependencies (workspace root)..."
+(
+    cd "${GNOMAD_BROWSER_DIR}"
+    cat > .npmrc <<EOF
+link-workspace-packages=true
+engine-strict=false
+shamefully-hoist=true
+store-dir=${PNPM_PACKAGES_DIR}/pnpm-store
+cache-dir=${PNPM_PACKAGES_DIR}/pnpm-cache
+state-dir=${PNPM_PACKAGES_DIR}/pnpm-state
+EOF
+    rm -f pnpm-lock.yaml
+    PNPM_HOME="${PNPM_PACKAGES_DIR}/pnpm-home" pnpm install
+)
 
 # ── 5. check python deps ──────────────────────────────────────────────────────
 
