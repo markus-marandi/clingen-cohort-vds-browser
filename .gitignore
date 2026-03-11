@@ -1,0 +1,40 @@
+# cloned by setup.sh - not part of this repo
+gnomad-browser/
+
+# hail / spark outputs
+*.vds/
+*.vds
+/temp/
+/tmp/
+__pycache__/
+*.pyc
+*.pyo
+
+# manifest is environment-specific (contains absolute paths and run history)
+ingest_manifest.json
+
+# raw and filtered gvcf data - too large to commit
+andmebaas_test_valim/
+andmebaas_test_valim_filtered/
+*.gvcf.gz
+*.gvcf.gz.tbi
+
+# machine-specific spark config
+spark_conf.json
+
+# hail logs
+hail-*.log
+/hail.log
+
+# python packaging
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# editor
+.idea/
+.vscode/
+*.swp
+.DS_Store
