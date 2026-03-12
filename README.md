@@ -144,12 +144,14 @@ python annotate_cohort.py \
     --overwrite
 ```
 ```bash
+source /mnt/sdb/venvs/hail-39/bin/activate
 python annotate_cohort.py \
     --vds-path  /mnt/sdb/gvcf_ustina/cohort_2026-03-11_run001.vds \
     --output-mt /mnt/sdb/gvcf_ustina/cohort_annotated.mt \
     --n-cores 16 \
     --memory-gb 64
 ```
+
 
 The CSV must have a `sample_id` column matching the e-codes in the VCF filenames (e.g. `E01230000`).
 

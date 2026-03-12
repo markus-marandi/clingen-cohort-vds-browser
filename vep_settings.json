@@ -19,7 +19,7 @@
         "--use_given_ref",
         "--fields", "Consequence,IMPACT,SYMBOL,HGVSg,HGVSc,HGVSp,transcript_id,CADD_PHRED,CADD_RAW,ClinVar_CLNSIG,ClinVar_CLNREVSTAT",
         "--plugin", "CADD,snv=https://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs_inclAnno.tsv.gz,indels=https://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/InDels.tsv.gz",
-        "--custom", "file=/mnt/sdb/gvcf_ustina/testing/clingen-cohort-vds-browser/Plugins/clinvar.vcf.gz,short_name=ClinVar,format=vcf,type=exact,coords=0,fields=CLNSIG%CLNREVSTAT",
+        "--custom", "/mnt/sdb/gvcf_ustina/testing/clingen-cohort-vds-browser/Plugins/clinvar.vcf.gz,ClinVar,vcf,exact,0,CLNSIG,CLNREVSTAT",
         "-o", "STDOUT"
     ],
     "env": {
