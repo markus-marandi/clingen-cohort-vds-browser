@@ -13,11 +13,11 @@
         "--cache_version", "108",
         "--merged",
         "--hgvs",
+        "--hgvsg",
         "--symbol",
         "--pick",
         "--canonical",
         "--use_given_ref",
-        "--fields", "Consequence,IMPACT,SYMBOL,HGVSg,HGVSc,HGVSp,transcript_id,CADD_PHRED,CADD_RAW,ClinVar_CLNSIG,ClinVar_CLNREVSTAT",
         "--plugin", "CADD,snv=https://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/whole_genome_SNVs_inclAnno.tsv.gz,indels=https://krishna.gs.washington.edu/download/CADD/v1.4/GRCh37/InDels.tsv.gz",
         "--custom", "/mnt/sdb/gvcf_ustina/testing/clingen-cohort-vds-browser/Plugins/clinvar.vcf.gz,ClinVar,vcf,exact,0,CLNSIG,CLNREVSTAT",
         "-o", "STDOUT"
@@ -25,5 +25,5 @@
     "env": {
         "PERL5LIB": "/mnt/sdb/gvcf_ustina/testing/clingen-cohort-vds-browser/Plugins"
     },
-    "vep_json_schema": "Struct{Consequence:String,IMPACT:String,SYMBOL:String,HGVSg:String,HGVSc:String,HGVSp:String,transcript_id:String,CADD_PHRED:Float64,CADD_RAW:Float64,ClinVar_CLNSIG:String,ClinVar_CLNREVSTAT:String,input:String}"
+    "vep_json_schema": "Struct{input:String,most_severe_consequence:String,transcript_consequences:Array[Struct{consequence_terms:Array[String],impact:String,gene_symbol:String,hgvsg:String,hgvsc:String,hgvsp:String,transcript_id:String,cadd_phred:Float64,cadd_raw_rankscore:Float64,canonical:Int32}],intergenic_consequences:Array[Struct{consequence_terms:Array[String],impact:String}],custom_annotations:Struct{ClinVar:Array[Struct{allele:String,fields:Struct{CLNSIG:String,CLNREVSTAT:String}}]}}"
 }

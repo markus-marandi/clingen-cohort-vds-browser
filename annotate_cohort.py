@@ -200,6 +200,51 @@ def annotate(
     print('Running VEP annotation (this is the slowest step)...')
     mt = hl.vep(mt, config=vep_config)
 
+    # ── 3b. flatten nested VEP JSON struct ────────────────────────────────────
+    # Hail calls VEP with --json; output is nested.  --pick ensures at most one
+    # entry in transcript_consequences.  Intergenic variants land in
+    # intergenic_consequences instead.  ClinVar hits are in custom_annotations.
+    print('Flattening VEP struct...')
+    has_tc = (
+        hl.is_defined(mt.vep.transcript_consequences)
+        & (hl.len(mt.vep.transcript_consequences) > 0)
+    )
+    has_ic = (
+        hl.is_defined(mt.vep.intergenic_consequences)
+        & (hl.len(mt.vep.intergenic_consequences) > 0)
+    )
+    tc = mt.vep.transcript_consequences[0]
+    ic = mt.vep.intergenic_consequences[0]
+    clinvar = hl.or_missing(
+        hl.is_defined(mt.vep.custom_annotations)
+        & hl.is_defined(mt.vep.custom_annotations.ClinVar)
+        & (hl.len(mt.vep.custom_annotations.ClinVar) > 0),
+        mt.vep.custom_annotations.ClinVar[0],
+    )
+    mt = mt.annotate_rows(
+        vep=hl.struct(
+            Consequence=hl.if_else(
+                has_tc,
+                hl.delimit(tc.consequence_terms, '&'),
+                hl.or_missing(has_ic, hl.delimit(ic.consequence_terms, '&')),
+            ),
+            IMPACT=hl.if_else(has_tc, tc.impact, hl.or_missing(has_ic, ic.impact)),
+            SYMBOL=hl.or_missing(has_tc, tc.gene_symbol),
+            HGVSg=hl.or_missing(has_tc, tc.hgvsg),
+            HGVSc=hl.or_missing(has_tc, tc.hgvsc),
+            HGVSp=hl.or_missing(has_tc, tc.hgvsp),
+            transcript_id=hl.or_missing(has_tc, tc.transcript_id),
+            CADD_PHRED=hl.or_missing(has_tc, tc.cadd_phred),
+            CADD_RAW=hl.or_missing(has_tc, tc.cadd_raw_rankscore),
+            ClinVar_CLNSIG=hl.or_missing(
+                hl.is_defined(clinvar), clinvar.fields.CLNSIG
+            ),
+            ClinVar_CLNREVSTAT=hl.or_missing(
+                hl.is_defined(clinvar), clinvar.fields.CLNREVSTAT
+            ),
+        )
+    )
+
     # ── 4. gnomAD join ────────────────────────────────────────────────────────
     gnomad_ht = _load_gnomad_ht(gnomad_ht_path)
 
