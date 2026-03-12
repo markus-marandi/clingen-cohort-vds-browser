@@ -4,6 +4,16 @@
 
 set -euo pipefail
 
+# ---------------------------------------------------------------------------
+# Direct all heavy data to the data disk
+# ---------------------------------------------------------------------------
+PKG_ROOT="/mnt/sdb/packages"
+PYTHON_PACKAGES_DIR="${PKG_ROOT}/python"
+PNPM_PACKAGES_DIR="${PKG_ROOT}"
+TMP_DIR="/mnt/sdb/tmp"
+# Ensure directories exist
+mkdir -p "${PYTHON_PACKAGES_DIR}" "${PNPM_PACKAGES_DIR}" "${TMP_DIR}"
+
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GNOMAD_BROWSER_DIR="${REPO_ROOT}/gnomad-browser"
 PATCHES_DIR="${REPO_ROOT}/browser"
@@ -18,13 +28,94 @@ info()    { echo -e "${GREEN}[setup]${NC} $*"; }
 warn()    { echo -e "${YELLOW}[warn]${NC}  $*"; }
 error()   { echo -e "${RED}[error]${NC} $*" >&2; exit 1; }
 
+copy_first_existing_patch() {
+    local destination="$1"
+    shift
+
+    local source_path
+    for source_path in "$@"; do
+        if [ -f "${source_path}" ]; then
+            cp "${source_path}" "${destination}"
+            return 0
+        fi
+    done
+
+    warn "missing patch for ${destination}; keeping existing file"
+}
+
 # ── 1. check required tools ───────────────────────────────────────────────────
+
+PYTHON_PACKAGES_DIR="/mnt/sdb/packages/python"
+mkdir -p "${PYTHON_PACKAGES_DIR}"
+
+# redirect podman image/container storage off the boot disk
+if command -v podman &>/dev/null; then
+    mkdir -p /mnt/sdb/containers/storage /mnt/sdb/containers/run
+    mkdir -p ~/.config/containers
+    mkdir -p /mnt/sdb/tmp/containers
+    PODMAN_RUN_ROOT="/mnt/sdb/tmp/containers"
+    mkdir -p /mnt/sdb/containers/storage "${PODMAN_RUN_ROOT}" "${TMP_DIR}"
+
+    # storage.conf: image layers on /mnt/sdb, runtime state on local tmpfs
+    if [ ! -f ~/.config/containers/storage.conf ]; then
+        cat > ~/.config/containers/storage.conf <<EOF
+[storage]
+driver = "overlay"
+graphRoot = "/mnt/sdb/containers/storage"
+# runRoot must be on local tmpfs - crun bind-mounts /etc/hosts into container
+# rootfs and this fails on /mnt/sdb even with fuse-overlayfs
+runRoot = "${PODMAN_RUN_ROOT}"
+
+[storage.options.overlay]
+mount_program = "/usr/bin/fuse-overlayfs"
+EOF
+        info "podman storage.conf written"
+    fi
+
+    # containers.conf: force buildah tmpdir off /mnt/sdb
+    # this VM sets TMPDIR=/mnt/sdb/tmp; buildah inherits it and puts container
+    # rootfs temp mounts there, where crun cannot open /etc/hosts (EPERM)
+    if [ ! -f ~/.config/containers/containers.conf ]; then
+        mkdir -p /mnt/sdb/tmp/containers-tmp
+        cat > ~/.config/containers/containers.conf <<EOF
+[engine]
+tmp_dir = "/mnt/sdb/tmp/containers-tmp"
+EOF
+        info "podman containers.conf written (tmp_dir -> /mnt/sdb/tmp/containers-tmp)"
+    fi
+fi
 
 info "checking required tools..."
 
-for tool in git python3 docker; do
+for tool in git python3; do
     command -v "$tool" &>/dev/null || error "'$tool' not found. install it and re-run."
 done
+
+# accept either docker or podman as the container runtime
+if command -v docker &>/dev/null; then
+    CONTAINER_CMD="docker"
+elif command -v podman &>/dev/null; then
+    CONTAINER_CMD="podman"
+else
+    error "neither docker nor podman found. install one and re-run."
+fi
+info "container runtime: ${CONTAINER_CMD} $(${CONTAINER_CMD} --version | head -1)"
+
+# resolve compose command: prefer 'docker compose' plugin, then docker-compose,
+# then podman-compose (installed to /mnt/sdb/packages/python if missing)
+if ${CONTAINER_CMD} compose version &>/dev/null 2>&1; then
+    COMPOSE_CMD="${CONTAINER_CMD} compose"
+elif command -v docker-compose &>/dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    if ! PYTHONPATH="${PYTHON_PACKAGES_DIR}" python3 -c "import podman_compose" 2>/dev/null; then
+        info "installing podman-compose to /mnt/sdb/packages/python..."
+        pip3 install --target "${PYTHON_PACKAGES_DIR}" podman-compose \
+            || error "could not install podman-compose"
+    fi
+    COMPOSE_CMD="PYTHONPATH=${PYTHON_PACKAGES_DIR} python3 -m podman_compose"
+    info "compose command: podman-compose (via python3 -m podman_compose)"
+fi
 
 if ! command -v pnpm &>/dev/null; then
     warn "pnpm not found. attempting install via npm..."
@@ -69,6 +160,18 @@ cp "${PATCHES_DIR}/graphql-api/src/queries/variant-queries.ts" \
 # docker-compose for local dev
 cp "${PATCHES_DIR}/docker-compose.yml" \
    "${GNOMAD_BROWSER_DIR}/docker-compose.yml"
+
+# keep dockerfile targets aligned with docker-compose build paths
+copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/graphql-api/Dockerfile" \
+    "${PATCHES_DIR}/graphql-api/Dockerfile" \
+    "${PATCHES_DIR}/graphql-api/src/Dockerfile"
+copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/browser/Dockerfile" \
+    "${PATCHES_DIR}/browser/Dockerfile"
+
+# exclude host node_modules and .git from the docker/podman build context
+copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/.dockerignore" \
+    "${PATCHES_DIR}/dockerignore" \
+    "${PATCHES_DIR}/.dockerignore"
 
 info "patches applied"
 
@@ -129,7 +232,7 @@ echo "        --manifest-path /mnt/sdb/gvcf_ustina/ingest_manifest.json \\"
 echo "        --n-cores 16 --memory-gb 64"
 echo ""
 echo " 2. start the browser stack:"
-echo "    cd gnomad-browser && docker compose up --build"
+echo "    cd gnomad-browser && TMPDIR=/tmp ${COMPOSE_CMD} up --build"
 echo ""
 echo " 3. export cohort variants to elasticsearch:"
 echo "    python gnomad-browser/data-pipeline/cohort_export.py \\"

@@ -7,7 +7,7 @@ Incremental GVCF → Hail VDS ingest pipeline with a local gnomAD browser fronte
 ## Overview
 
 ```
-raw GVCFs  →  bcftools filter  →  Hail VDS combiner  →  Elasticsearch  →  gnomAD browser
+raw GVCFs  →  bcftools filter  →  Hail VDS combiner  →  annotate (VEP / gnomAD / CADD / ClinVar)  →  Elasticsearch  →  gnomAD browser
 ```
 
 - **bcftools preprocessing** runs in parallel across all samples, renaming chromosomes `chr1 → 1` and stripping non-autosomal/sex contigs.
@@ -109,25 +109,65 @@ For 2000 exomes on 16 cores / 64 GB, expect:
 
 ---
 
-## Exporting to Elasticsearch
+## Annotating and exporting to Elasticsearch
 
-After a successful pipeline run, index variants into Elasticsearch:
+After a successful ingest run, annotate the VDS and then index to Elasticsearch.
+
+### Step 1 — annotate
 
 ```bash
-python gnomad-browser/data-pipeline/cohort_export.py \
-    --manifest-path /mnt/sdb/gvcf_ustina/ingest_manifest.json \
-    --es-url http://localhost:9200 \
-    --index cohort_variants
+python annotate_cohort.py \
+    --vds-path  /mnt/sdb/gvcf_ustina/cohort_2026-03-11_run001.vds \
+    --output-mt /mnt/sdb/gvcf_ustina/cohort_annotated.mt \
+    --n-cores 16 \
+    --memory-gb 64
 ```
 
-This automatically picks up the latest completed VDS from the manifest. You can also point it at a specific VDS:
+Annotation layers applied in order:
+
+| layer | source |
+|---|---|
+| cohort AC / AN / AF / hom_count | `hl.variant_qc()` |
+| consequence, IMPACT, gene, HGVSg/c/p, transcript | VEP 108 (GRCh37, offline cache) |
+| CADD_PHRED score | CADD v1.4 plugin (remote HTTPS tabix) |
+| ClinVar significance | local `clinvar.vcf.gz` (VEP `--custom`) |
+| gnomAD AF + AF_nfe | gnomAD v2.1.1 exomes, local VCF (first run auto-converts to Hail Table) |
+
+On **first run** the 59 GB gnomAD VCF is imported and written as a Hail Table alongside the VCF — this takes ~30 min and only happens once.
+
+To add sample-level clinical metadata (sex, age, care_site, panel, HPO) once the GE server export is available:
 
 ```bash
-python gnomad-browser/data-pipeline/cohort_export.py \
+python annotate_cohort.py \
+    --vds-path      /mnt/sdb/gvcf_ustina/cohort_2026-03-11_run001.vds \
+    --output-mt     /mnt/sdb/gvcf_ustina/cohort_annotated.mt \
+    --overwrite
+```
+```bash
+python annotate_cohort.py \
+    --vds-path  /mnt/sdb/gvcf_ustina/cohort_2026-03-11_run001.vds \
+    --output-mt /mnt/sdb/gvcf_ustina/cohort_annotated.mt \
+    --n-cores 16 \
+    --memory-gb 64
+```
+
+The CSV must have a `sample_id` column matching the e-codes in the VCF filenames (e.g. `E01230000`).
+
+### Step 2 — export
+
+```bash
+python browser/data-pipeline/cohort_export.py \
+    --mt-path /mnt/sdb/gvcf_ustina/cohort_annotated.mt \
+    --es-url  http://localhost:9200 \
+    --index   cohort_variants
+```
+
+If the annotation step has not been run yet, the export script falls back to a VDS-only export (basic variant stats only):
+
+```bash
+python browser/data-pipeline/cohort_export.py \
     --vds-path /mnt/sdb/gvcf_ustina/cohort_2026-03-11_run001.vds
 ```
-
-The script densifies the VDS, runs `hl.variant_qc`, and bulk-indexes these fields per variant: `chrom`, `pos`, `ref`, `alt`, `ac`, `an`, `af`, `n_hom`, `filters`.
 
 ---
 
@@ -153,11 +193,12 @@ Open `http://localhost:3000`, use the dataset selector to choose **Cohort**, and
 ```
 .
 ├── parallel_ingest_cohort.py     # main ingest pipeline (run this)
+├── annotate_cohort.py            # VDS → annotated MatrixTable (VEP, gnomAD, CADD, ClinVar)
 ├── ingest_manifest.py            # manifest read/write helpers
 ├── setup.sh                      # one-time setup script
 ├── browser/                      # gnomad-browser patches (applied by setup.sh)
 │   ├── data-pipeline/
-│   │   └── cohort_export.py      # VDS → Elasticsearch export
+│   │   └── cohort_export.py      # MT/VDS → Elasticsearch export
 │   ├── docker-compose.yml
 │   └── graphql-api/
 │       └── src/
