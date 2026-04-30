@@ -9,8 +9,8 @@ Top-level roadmap for agents. Keep detailed work items in scoped `TODO.md` files
 - [ ] Add a metadata validation command for sample IDs, required columns, date formats, and panel
       cardinality.
 - [ ] Run a tiny Hail path that produces VDS or MatrixTable output locally.
-- [ ] Verify `variant_qc()` fields: `ac_total`, `an_total`, `af_total`, `hom_count`.
-- [ ] Export demo variants to local Elasticsearch index `cohort_variants`.
+- [x] Verify `variant_qc()` fields: `ac_total`, `an_total`, `af_total`, `hom_count`. (confirmed 2026-04-30, 150,659 variants, 20 samples)
+- [x] Export demo variants to local Elasticsearch index `cohort_variants`. (confirmed 2026-04-30, 14k docs/s)
 - [ ] Smoke test browser at `http://localhost:3000` with a known variant and gene query.
 
 ## Metadata
