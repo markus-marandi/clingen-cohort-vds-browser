@@ -243,12 +243,14 @@ def export_mt_to_es(
     mt = hl.read_matrix_table(mt_path)
 
     ht = mt.rows()
+    # check if filters field exists in the mt
+    has_filters = 'filters' in ht.row
     ht = ht.select(
         chrom=ht.locus.contig,
         pos=ht.locus.position,
         ref=ht.alleles[0],
         alt=ht.alleles[1],
-        filters=ht.filters,
+        filters=ht.filters if has_filters else hl.empty_set(hl.tstr),
         # cohort frequencies
         ac_total=ht.variant_qc.AC[1],
         an_total=ht.variant_qc.AN,
@@ -330,9 +332,13 @@ def export_vds_to_es(
     vds = hl.vds.read_vds(vds_path)
 
     mt = hl.vds.to_dense_mt(vds)
+    # vds uses lgt (local genotype); convert to standard gt for variant_qc
+    mt = mt.annotate_entries(GT=hl.vds.lgt_to_gt(mt.LGT, mt.LA))
     mt = hl.variant_qc(mt)
 
     ht = mt.rows()
+    # vds does not include filters field by default
+    has_filters = 'filters' in ht.row
     ht = ht.select(
         chrom=ht.locus.contig,
         pos=ht.locus.position,
@@ -342,7 +348,7 @@ def export_vds_to_es(
         an=ht.variant_qc.AN,
         af=ht.variant_qc.AF[1],
         n_hom=ht.variant_qc.homozygote_count[1],
-        filters=ht.filters,
+        filters=ht.filters if has_filters else hl.empty_set(hl.tstr),
     )
 
     total = ht.count()
