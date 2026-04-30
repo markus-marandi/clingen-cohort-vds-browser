@@ -4,8 +4,8 @@ Browser and Elasticsearch backlog.
 
 ## Export
 
-- [ ] Verify `cohort_export.py` writes `ac_total`, `an_total`, `af_total`, and `hom_count` for
-      annotated MatrixTables.
+- [x] Verify `cohort_export.py` writes `ac_total`, `an_total`, `af_total`, and `hom_count` for
+      annotated MatrixTables. (confirmed 2026-04-30)
 - [ ] Decide whether to remove or keep legacy fallback fields `ac`, `an`, `af`, and `n_hom`.
 - [ ] Add a tiny export fixture or documented command that indexes a known demo variant.
 - [ ] Add validation for required fields before bulk indexing.
@@ -29,6 +29,6 @@ Browser and Elasticsearch backlog.
 
 ## Local Stack
 
-- [ ] Confirm `docker compose up --build` works after `./setup.sh`.
-- [ ] Document any Podman-specific command differences if Docker is unavailable.
+- [ ] Confirm `docker compose up --build` works after `./setup.sh`. (BLOCKER: server uses Podman 5.5.1 with /etc/mtab symlink issue — Docker Compose not yet tested on server)
+- [ ] Resolve Podman issue: fix /etc/mtab symlink, switch to `podman compose`, or document Docker-only requirement.
 - [ ] Keep generated `gnomad-browser/` out of tracked source.
