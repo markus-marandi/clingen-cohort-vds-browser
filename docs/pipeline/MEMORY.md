@@ -29,46 +29,43 @@ These are database-level cohort fields from `hl.variant_qc()`:
 
 ## Metadata Inputs
 
-Sample CSV fields from the current test file:
+Sample CSV fields (updated schema — CSV files not yet updated):
 
 - `sample_id`
-- `sex`
-- `age`
+- `chromosomal_sex` (was `sex` — inferred from genotype; XX, XY, ambiguous)
+- `sex_assigned` (was `sex` — from clinical metadata; Male, Female, Other, Unknown)
+- `date_of_birth` (was `age` — ISO date string YYYY-MM-DD)
 - `date_seq`
 - `run_id`
 - `care_site`
 - `health_status`
+- `material` (new — blood, tissue, saliva, buccal swab, etc.)
+- `test` (future — WES / WGS)
+- `instrument` (future — sequencer model)
 
-Panel CSV fields from the current test file:
+Panel CSV fields (unchanged):
 
 - `sample_id`
 - `panel`
 
-Expected future metadata also includes:
-
-- `test`
-- `instrument`
-- chromosomal sex (inferred from genotypes, stored separately from social `sex`)
-
-HPO data comes from two sources joined by `HPO_ID`:
+HPO data from two sources joined by `HPO_ID`:
 
 - Per-sample HPO assignments: `sample_id`, `HPO_ID` (one-to-many)
-- HPO lookup table: `HPO_ID`, `HPO_termin`, `HPO_version`, `date/valid from`
+- HPO lookup table: `HPO_ID`, `HPO_termin`, `HPO_version`, `date_valid_from`
 
 ## Validation Risks
 
 - Panel rows can reference samples missing from the sample CSV.
 - Some sample IDs may contain typos and need explicit reporting.
-- `date_seq` may arrive as `M/D/YY`; normalize before downstream use.
-- Social self-defined sex is not the same as chromosomal sex.
+- `date_seq` and `date_of_birth` may arrive in non-ISO formats; normalize to YYYY-MM-DD before load.
+- `chromosomal_sex` and `sex_assigned` are separate fields and must never be merged or conflated.
 - One sample can have multiple ordered panels.
 
-## Annotation Assumptions
+## Annotation Decisions
 
-- Current docs assume GRCh37/hg19.
-- VEP config is `vep_settings.json`.
-- VEP version in docs is 108.
-- gnomAD source in docs is v2.1.1 exomes with `AF` and `AF_nfe`.
-- CADD and ClinVar are expected through VEP/custom annotation paths, but exact production setup
-  still needs confirmation.
-- `annotation_sources.md` is the detailed field-to-source reference.
+- GRCh37/hg19, VEP 108, gnomAD v2.1.1 exomes.
+- Annotation sources decided: VEP + CADD 1.6 (VEP plugin CADD.pm) + dbNSFP 4.x + ClinVar
+  (local VCF join) + gnomAD v2.1.1 (local HT join).
+- CADD 1.6 TSV data files still need to be downloaded to `/mnt/sdb/reference/cadd_v1.6/`.
+- dbNSFP integration method pending (VEP plugin vs. Hail join); data files not yet downloaded.
+- See `annotation_sources.md` for per-field paths and configuration details.

@@ -27,6 +27,12 @@ Read `MEMORY.md` first, then only the scoped memory file for the area you touch:
 - `browser/MEMORY.md` for Elasticsearch, GraphQL, and gnomAD browser assumptions.
 - `memory/project_*.md` for dated project notes from prior server and packaging work.
 
+Architecture and spec documents:
+
+- `docs/ARCHITECTURE.md` — full data model, annotation strategy, deployment and security spec.
+- `docs/VM_STRUCTURE.md` — canonical VM directory layout and migration steps.
+- `annotation_sources.md` — per-field annotation source reference with VM paths.
+
 Use `TODO.md` as the roadmap index. Use scoped `TODO.md` and `AGENTS.md` files for implementation
 details.
 
@@ -104,12 +110,22 @@ Document any skipped check in the final response.
 
 ## Data Rules
 
-- Keep social self-defined sex from metadata separate from chromosomal sex inferred from genotypes.
+- Keep `sex_assigned` (from metadata) and `chromosomal_sex` (inferred from genotypes) as separate
+  fields. Never merge or conflate them.
 - Join clinical metadata by `sample_id`.
 - Treat panels as one row per `sample_id` and `panel`; multiple rows per sample are expected.
 - Keep raw genotype storage in VDS; write annotations and query/export fields to MatrixTable.
 - Calculate cohort-level `ac_total`, `an_total`, `af_total`, and `hom_count` from Hail
-`variant_qc()`.
+  `variant_qc()`.
+
+## VDS and Binary Data Rules
+
+- Do NOT read the contents of `.vds` or `.mt` directories. These are binary Hail data stores and
+  cannot be meaningfully read as text.
+- You MAY read: Hail log files (`hail-*.log`), `ls`/`find`/`du` output, and schema metadata.
+- If a pipeline step fails, read the Hail log file for the error — not the VDS or MT itself.
+- Do not pass VDS or MT paths to text-reading tools (`cat`, `Read`, `head`). This will produce
+  garbage output and may stall.
 
 ## Coding Guidance
 

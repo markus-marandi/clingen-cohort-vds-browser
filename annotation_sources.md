@@ -1,23 +1,25 @@
 # Annotation Sources
 
-Reference document for the annotation pipeline. For each field in `andmebaasi_struktuur.xlsx`,
-this lists the source type, the endpoint or library to use, and what needs to be configured.
+Reference document for the annotation pipeline. For each field in the data model, this lists
+the source type, the path or endpoint, and configuration details.
+
+See `docs/ARCHITECTURE.md` for the full data model and pipeline overview.
 
 ---
 
-## Storage architecture note
+## Storage architecture
 
-**VDS** is kept as the raw genotype store (combiner output). Annotations go on a **Hail MatrixTable**:
+**VDS** is the raw genotype store (combiner output). Annotations go on a **Hail MatrixTable**:
 
 ```
-VDS  ->  hl.vds.to_dense_mt()  -> annotate rows/cols  ->  write annotated .mt
+VDS  →  hl.vds.to_dense_mt()  →  annotate rows/cols  →  write annotated .mt
 ```
 
-- `mt.annotate_rows(...)` — variant-level annotations (VEP, ClinVar, CADD, gnomAD, cohort freqs)
+- `mt.annotate_rows(...)` — variant-level annotations (VEP, CADD, dbNSFP, ClinVar, gnomAD, cohort freqs)
 - `mt.annotate_cols(...)` — sample-level annotations (clinical metadata)
-- `mt.write('cohort_annotated.mt')` — persist the annotated MT for downstream export
+- `mt.write('cohort_annotated.mt')` — persist for downstream export
 
-VDS itself does not need to change. The annotated MT is what feeds the export pipeline.
+VDS itself does not change. The annotated MT feeds the export pipeline.
 
 ---
 
@@ -48,158 +50,203 @@ VDS itself does not need to change. The annotated MT is what feeds the export pi
 | `af_total` | `variant_qc.AF[1]` |
 | `hom_count` | `variant_qc.homozygote_count[1]` |
 
-No external endpoint needed. These are computed with `hl.variant_qc(mt)` after densification.
+Computed with `hl.variant_qc(mt)` after densification. No external endpoint needed.
 
 ---
 
 ### 3. VEP — variant annotation
 
-All fields below come from VEP. Two options:
-
-#### Option A — Hail built-in `hl.vep()` (recommended for large cohorts)
-
-Requires a local VEP installation and a Hail VEP config JSON.
+Use Hail built-in `hl.vep()` with a local VEP installation.
 
 ```python
-# fill in your vep config path
-mt = hl.vep(mt, config='/home/markus/gen-toolbox/src/config/vep_settings.json')
+mt = hl.vep(mt, config='vep_settings.json')
 ```
 
-{
-    "command": [
-        "/mnt/sdb/projects/ensembl-vep/vep",
-        "--format", "vcf",
-        "__OUTPUT_FORMAT_FLAG__",
-        "--fasta", "/mnt/sdb/VEP/ref_fasta/ucsc.hg19.fasta",
-        "--dir_cache", "/mnt/sdb/VEP/VEP_cache/",
-        "--no_stats",
-        "--cache", "--offline",
-        "--assembly", "GRCh37",
-        "--cache_version", "108",
-        "--merged",
-        "--MAX_AF",
-        "--symbol",
-        "--fields", "IMPACT,SYMBOL,HGNC_ID,MAX_AF,MAX_AF_POPS",
-        "--pick",
-        "--canonical",
-        "--use_given_ref",
-        "--offline",
-        "-o", "STDOUT"
-    ],
-    "env": {
-        "PERL5LIB": "/vep_data/loftee"
-    },
-    "vep_json_schema": "Struct{IMPACT:String,SYMBOL:String,HGNC_ID:Int32,MAX_AF:Float64,MAX_AF_POPS:String,input:String}"
-}
+**Paths on VM:**
+- Binary: `/mnt/sdb/projects/ensembl-vep/vep`
+- Cache: `/mnt/sdb/VEP/VEP_cache/` (GRCh37, v108, merged)
+- FASTA: `/mnt/sdb/VEP/ref_fasta/ucsc.hg19.fasta`
+- Plugins dir: `/mnt/sdb/projects/ensembl-vep/Plugins/`
 
-Hail's VEP config JSON points to:
-- `vep` binary location
-- plugins directory
-- cache directory (GRCh37 or GRCh38)
+**VEP flags:** `--pick --canonical --symbol --HGVS --MAX_AF --assembly GRCh37 --cache_version 108 --merged --offline`
 
-> **TODO**: fill in VEP binary path and cache location for your environment
-
-#### Option B — Ensembl REST API (smaller batches only, ~200 variants/request)
-
-```
-POST https://grch37.rest.ensembl.org/vep/human/region
-Content-Type: application/json
-{ "variants": ["17 7577556 . C A . . ."] }
-```
-
-Python library: `requests`
-
-> **TODO**: decide batch vs local VEP based on cohort size
-
-#### VEP fields and where they come from inside the VEP response
+**Fields from VEP response:**
 
 | Field | VEP output key | Notes |
 |---|---|---|
-| `gdna` | `HGVSg` | genomic HGVS |
-| `cdna` | `HGVSc` | coding HGVS |
-| `transcript` | `transcript_id` | filter to MANE Select / NM_ RefSeq |
-| `p_nomen` | `HGVSp` | protein HGVS |
-| `gene_symbol` | `gene_symbol` | |
+| `HGVS_g` | `HGVSg` | genomic HGVS |
+| `HGVS_c` | `HGVSc` | coding HGVS |
+| `transcript` | `transcript_id` | MANE Select / NM_ RefSeq |
+| `HGVS_p` | `HGVSp` | protein HGVS |
+| `gene_symbol` | `SYMBOL` | |
 | `consequence` | `consequence_terms[0]` | most severe |
-| `impact` | `impact` | HIGH / MODERATE / LOW / MODIFIER |
-| `clinvar_sig` | `ClinVar` plugin | requires ClinVar VEP plugin |
-| `cadd_score` | `CADD` plugin | requires CADD VEP plugin |
-| `gnomad_af` | `gnomAD` plugin — `AF` | gnomAD v2/v3 plugin |
-| `gnomad_nonfin` | `gnomAD` plugin — `AF_nfe` | Non-Finnish European |
+| `impact` | `IMPACT` | HIGH / MODERATE / LOW / MODIFIER |
 
-> **TODO**: confirm which VEP plugins are installed/available:
-> - [ ] ClinVar (`--plugin ClinVar,...`)
-> - [ ] CADD (`--plugin CADD,...`)
-> - [ ] gnomAD (`--plugin gnomAD,...`)
+CADD scores and dbNSFP scores are added through VEP plugins (see sections 4 and 5 below).
 
 ---
 
-### 4. ClinVar — if not using VEP plugin
+### 4. CADD 1.6 — deleteriousness score (decided)
 
-Direct options if VEP ClinVar plugin is not available:
+CADD (Combined Annotation Dependent Depletion) integrates hundreds of annotations into a single
+PHRED-scaled deleteriousness score. v1.6 is the current production release for GRCh37.
 
-| Approach | Notes |
-|---|---|
-| Hail Table join | download `variant_summary.txt.gz` from NCBI, load as Hail Table, join on locus+alleles |
-| NCBI E-utilities API | `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=...` |
-| ClinVar FTP | `https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar.vcf.gz` |
+**Plugin:** `CADD.pm` — copy to `/mnt/sdb/projects/ensembl-vep/Plugins/CADD.pm`
 
-Python library: `hail` (for Table join) or `requests` (for API)
+**Data files** (download to `/mnt/sdb/reference/cadd_v1.6/`):
+```
+whole_genome_SNVs.tsv.gz      # ~200 GB
+whole_genome_SNVs.tsv.gz.tbi
+InDels.tsv.gz
+InDels.tsv.gz.tbi
+```
+Download from: `https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/`
 
-> **TODO**: choose approach — VEP plugin or separate join
+**VEP config line:**
+```
+"--plugin", "CADD,/mnt/sdb/reference/cadd_v1.6/whole_genome_SNVs.tsv.gz,/mnt/sdb/reference/cadd_v1.6/InDels.tsv.gz"
+```
 
----
-
-### 5. gnomAD — if not using VEP plugin
-
-| Approach | Notes |
-|---|---|
-| gnomAD public Hail Tables | GRCh37: `gs://gcp-public-data--gnomad/release/2.1.1/ht/exomes/gnomad.exomes.r2.1.1.sites.ht` (requires GCS access) |
-| gnomAD REST API | `https://gnomad.broadinstitute.org/api` — GraphQL, variant-level |
-| Local VCF download | `https://gnomad.broadinstitute.org/downloads` — chr-split VCFs, join with Hail |
-
-Python library: `hail` (Hail Table join) or `requests` (GraphQL API)
-
-> **TODO**: fill in which gnomAD version (v2 exomes for GRCh37, v4 for GRCh38) and access method:
-> - gnomAD version: ___
-> - Access method: GCS Hail Table / REST API / local VCF
-
----
-
-### 6. Clinical metadata — sample-level, from internal GE server
-
-These annotate **columns** (samples), not rows (variants).
+**Fields:**
 
 | Field | Notes |
 |---|---|
-| `test` | WES / WGS |
-| `instrument` | sequencer model |
-| `sex` | chromosomal or from metadata |
-| `age` | age at sequencing |
-| `care_site` | ordering institution (TUH, etc.) |
-| `panel` | ordered gene panel(s) |
-| `HPO_ID` | HPO term ID (WGS samples) |
-| `HPO_termin` | HPO term label |
-| `health_status` | Affected / Non-affected |
+| `cadd_raw` | raw CADD score |
+| `cadd_score` | PHRED-scaled score (use this for thresholds); ≥20 = top 1% most deleterious |
 
-Source is a summary table on the GE server (or equivalent).
+> **Status:** CADD.pm plugin exists on VM. TSV data files need to be downloaded (v1.4 remote URL
+> was broken; v1.6 local files resolve the plugin warning seen in `STDOUT_warnings.txt`).
 
-> **TODO**: fill in:
+---
+
+### 5. dbNSFP — functional annotation database (decided)
+
+dbNSFP is a pre-computed resource covering all possible non-synonymous SNVs in the human genome.
+A single join provides REVEL, SIFT, PolyPhen-2, MetaRNN, and ClinPred scores without running
+each predictor separately. Recommended version: 4.8 (GRCh37 build available).
+
+**License:** free for non-commercial academic research.
+
+**Data files** (download to `/mnt/sdb/reference/dbnsfp/`):
+```
+dbNSFP4.8_variant.chr1.gz
+dbNSFP4.8_variant.chr1.gz.tbi
+... (one file per chromosome)
+```
+Download from: `https://sites.google.com/site/jpopgen/dbNSFP` (requires registration)
+
+**Integration — Option A: VEP plugin (recommended)**
+
+```
+"--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP4.8_variant.chr%s.gz,REVEL_score,SIFT_score,Polyphen2_HDIV_score,MetaRNN_score,ClinPred_score"
+```
+
+**Integration — Option B: Hail Table join**
+
+Load the dbNSFP flat files as a Hail Table and join on `locus` + `alleles`. More explicit and
+easier to update independently of VEP, but requires an extra pipeline step.
+
+**Fields to extract:**
+
+| dbNSFP field | Meaning | Threshold |
+|---|---|---|
+| `REVEL_score` | Rare variant pathogenicity ensemble | ≥0.5 suggestive; ≥0.75 strong |
+| `SIFT_score` | Sequence-based tolerance | <0.05 = damaging |
+| `Polyphen2_HDIV_score` | Structure-based pathogenicity | >0.908 = probably damaging |
+| `MetaRNN_score` | Deep learning ensemble | ≥0.5 = damaging |
+| `ClinPred_score` | Trained on ClinVar P/LP variants | >0.5 = likely pathogenic |
+
+> **Status:** integration method not yet decided (VEP plugin vs. Hail join). Data files not yet
+> downloaded.
+
+---
+
+### 6. ClinVar — clinical significance (decided: local VCF join)
+
+| Field | Notes |
+|---|---|
+| `clinvar_sig` | clinical significance string (Pathogenic, VUS, Benign, …) |
+| `clinvar_condition` | associated disease / condition |
+| `clinvar_review_status` | evidence level (criteria provided, expert panel, …) |
+
+**Data file:** `/mnt/sdb/reference/clinvar/clinvar.vcf.gz` (move from `Plugins/clinvar.vcf.gz`)
+
+**Hail join:**
+```python
+clinvar = hl.import_vcf('/mnt/sdb/reference/clinvar/clinvar.vcf.gz', reference_genome='GRCh37')
+clinvar_ht = clinvar.rows()
+mt = mt.annotate_rows(clinvar=clinvar_ht[mt.locus, mt.alleles])
+```
+
+Update cadence: download a fresh release every 3–6 months from
+`https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/clinvar.vcf.gz`
+
+---
+
+### 7. gnomAD v2.1.1 exomes (decided: local Hail Table)
+
+| Field | gnomAD HT field | Notes |
+|---|---|---|
+| `gnomad_af` | `freq[0].AF` | all-population AF |
+| `gnomad_nonfin` | `freq[...].AF` where pop=`nfe` | Non-Finnish European AF |
+
+**Data:** `/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht` (move from `Plugins/`)
+
+**Hail join:**
+```python
+gnomad_ht = hl.read_table('/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht')
+mt = mt.annotate_rows(gnomad=gnomad_ht[mt.locus, mt.alleles])
+```
+
+Reference genome GRCh37 matches the current pipeline.
+
+---
+
+### 8. Clinical metadata — sample-level, from internal GE server
+
+These annotate **columns** (samples), not rows (variants). Joined by `sample_id`.
+
+**Updated sample CSV fields:**
+
+| Field | Previous field | Notes |
+|---|---|---|
+| `sample_id` | same | join key |
+| `chromosomal_sex` | — | **new** — inferred from genotype data (X het rate / chrY coverage); values: XX, XY, ambiguous |
+| `sex_assigned` | `sex` | **renamed** — from clinical metadata; values: Male, Female, Other, Unknown |
+| `date_of_birth` | `age` | **renamed** — ISO date string (YYYY-MM-DD); normalize on load |
+| `date_seq` | same | |
+| `run_id` | same | |
+| `care_site` | same | ordering institution |
+| `health_status` | same | Affected / Non-affected |
+| `material` | — | **new** — biological source: blood, tissue, saliva, buccal swab, etc. |
+| `test` | (future) | WES / WGS |
+| `instrument` | (future) | sequencer model |
+
+**Panels CSV** (one row per sample per panel, unchanged):
+- `sample_id`, `panel`
+
+**HPO CSV** (WGS samples, one row per sample per HPO term):
+- `sample_id`, `HPO_ID`
+
+**HPO lookup table** (from HPO release):
+- `HPO_ID`, `HPO_termin`, `HPO_version`, `date_valid_from`
+
+> **TODO:**
 > - Internal metadata table location / API endpoint: ___
 > - Format (CSV / database / REST): ___
-> - Join key (sample_id / e-code): ___
+> - Confirm `chromosomal_sex` inference step location (annotate_cohort.py or pre-processing)
 
 ---
 
 ## Summary checklist
 
-| Source | Status | Endpoint / path to configure |
+| Source | Status | Path / action needed |
 |---|---|---|
 | VCF fields | ready | no config needed |
 | Cohort frequencies | ready | `hl.variant_qc()` |
-| VEP — local `hl.vep()` | **TODO** | VEP binary + cache path |
-| VEP — ClinVar plugin | **TODO** | plugin path + ClinVar data |
-| VEP — CADD plugin | **TODO** | plugin path + CADD scores |
-| VEP — gnomAD plugin | **TODO** | plugin path + gnomAD data |
-| gnomAD (if separate) | **TODO** | GCS / REST / local VCF |
-| Clinical metadata | **TODO** | GE server table/API + join key |
+| VEP — local `hl.vep()` | ready | paths confirmed on VM |
+| CADD 1.6 | plugin ready, **data needed** | download v1.6 TSV to `/mnt/sdb/reference/cadd_v1.6/` |
+| dbNSFP | **TODO** | decide VEP plugin vs Hail join; download data |
+| ClinVar | data on VM, **move needed** | `mv Plugins/clinvar.vcf.gz* /mnt/sdb/reference/clinvar/` |
+| gnomAD v2.1.1 | data on VM, **move needed** | `mv Plugins/gnomad.* /mnt/sdb/reference/gnomad/` |
+| Sample metadata | **schema updated** | update CSV files with new field names |

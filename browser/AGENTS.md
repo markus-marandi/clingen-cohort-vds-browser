@@ -50,3 +50,11 @@ Services:
 - Keep the cohort dataset compatible with GRCh37 unless the pipeline reference changes.
 - Keep Elasticsearch field names aligned with `cohort_export.py`.
 - Do not add internal URLs, credentials, or private sample data to browser docs or source.
+- `sample_id` values must not appear in variant query results returned to the browser UI.
+- Do not expose internal file paths (VDS, MT, reference dirs) in GraphQL errors or API responses.
+
+## VDS and Binary Data Rules
+
+- Do NOT read the contents of `.vds` or `.mt` directories. These are binary Hail data stores.
+- You MAY read: Hail log files (`hail-*.log`), `ls`/`find`/`du` output, and schema metadata.
+- If a pipeline step fails, read the Hail log file for the error — not the VDS or MT itself.

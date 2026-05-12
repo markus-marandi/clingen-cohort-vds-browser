@@ -42,3 +42,12 @@ Build toward a tiny local path that can run before server deployment:
 - Do not run production-scale Hail jobs for routine edits.
 - Keep absolute server paths configurable through flags, not hardcoded into new code.
 - Do not commit VCF/GVCF, VDS, MatrixTable, Spark temp data, or Hail logs.
+
+## VDS and Binary Data Rules
+
+- Do NOT read the contents of `.vds` or `.mt` directories. These are binary Hail data stores and
+  cannot be meaningfully read as text.
+- You MAY read: Hail log files (`hail-*.log`), `ls`/`find`/`du` output, and schema metadata printed
+  by `hl.describe()` or `print(mt.describe())` in a script.
+- If a pipeline step fails, read the Hail log file for the error — not the VDS or MT itself.
+- Do not pass VDS or MT directory paths to text-reading tools. This produces garbage output.
