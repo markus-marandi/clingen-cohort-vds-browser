@@ -28,8 +28,8 @@ services:
 
   graphql-api:
     build:
-      context: ./graphql-api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: graphql-api/Dockerfile
     environment:
       - NODE_ENV=development
       - ELASTICSEARCH_URL=http://elasticsearch:9200
@@ -46,10 +46,10 @@ services:
 
   browser:
     build:
-      context: ./browser
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: browser/Dockerfile
     environment:
-      - GNOMAD_API_URL=http://graphql-api:8000
+      - GNOMAD_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
     depends_on:

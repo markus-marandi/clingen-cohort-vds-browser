@@ -64,11 +64,10 @@ Annotation fields:
 - Gene and transcript queries currently use upstream gene/transcript coordinates and return
   overlapping cohort variants.
 - Autocomplete searches variant ID prefixes and exact rsID terms.
+- GraphQL variant formatting prefers annotated MatrixTable fields and falls back to VDS-only fields.
 
 ## Known Gaps
 
-- GraphQL formatting currently maps to the basic gnomAD variant shape and may need to prefer
-  `ac_total`, `an_total`, `af_total`, and `hom_count` over fallback fields.
 - Gene-level frequency summaries are not yet defined.
 - Metadata-derived filtering is not yet represented in the Elasticsearch mapping.
 - `gnomad_nonfin` source semantics must be confirmed before exposing it prominently.

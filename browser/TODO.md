@@ -14,8 +14,8 @@ Browser and Elasticsearch backlog.
 
 ## GraphQL
 
-- [ ] Update cohort variant formatting to prefer annotated cohort fields over legacy fallback
-      fields.
+- [x] Update cohort variant formatting to prefer annotated cohort fields over legacy fallback
+      fields. (done 2026-05-06)
 - [ ] Test `fetchVariantById` with variant ID and rsID.
 - [ ] Test region, gene, transcript, and autocomplete queries against the local demo index.
 - [ ] Decide how to expose `gnomad_nonfin`, CADD, ClinVar, and VEP fields through GraphQL.

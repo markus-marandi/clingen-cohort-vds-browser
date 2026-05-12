@@ -4,20 +4,15 @@
 
 set -euo pipefail
 
-# ---------------------------------------------------------------------------
-# Direct all heavy data to the data disk
-# ---------------------------------------------------------------------------
-PKG_ROOT="/mnt/sdb/packages"
-PYTHON_PACKAGES_DIR="${PKG_ROOT}/python"
-PNPM_PACKAGES_DIR="${PKG_ROOT}"
-TMP_DIR="/mnt/sdb/tmp"
-# Ensure directories exist
-mkdir -p "${PYTHON_PACKAGES_DIR}" "${PNPM_PACKAGES_DIR}" "${TMP_DIR}"
-
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GNOMAD_BROWSER_DIR="${REPO_ROOT}/gnomad-browser"
 PATCHES_DIR="${REPO_ROOT}/browser"
 GNOMAD_BROWSER_REPO="https://github.com/broadinstitute/gnomad-browser.git"
+
+PKG_ROOT="/mnt/sdb/packages"
+PYTHON_PACKAGES_DIR="${PKG_ROOT}/python"
+PNPM_PACKAGES_DIR="${PKG_ROOT}"
+TMP_DIR="/mnt/tmp"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -27,6 +22,12 @@ NC='\033[0m'
 info()    { echo -e "${GREEN}[setup]${NC} $*"; }
 warn()    { echo -e "${YELLOW}[warn]${NC}  $*"; }
 error()   { echo -e "${RED}[error]${NC} $*" >&2; exit 1; }
+
+ensure_writable_dir() {
+    local path="$1"
+    mkdir -p "${path}" || error "could not create ${path}"
+    [ -w "${path}" ] || error "${path} is not writable"
+}
 
 copy_first_existing_patch() {
     local destination="$1"
@@ -45,25 +46,25 @@ copy_first_existing_patch() {
 
 # ── 1. check required tools ───────────────────────────────────────────────────
 
-PYTHON_PACKAGES_DIR="/mnt/sdb/packages/python"
-mkdir -p "${PYTHON_PACKAGES_DIR}"
+ensure_writable_dir "${PYTHON_PACKAGES_DIR}"
+ensure_writable_dir "${PNPM_PACKAGES_DIR}"
+ensure_writable_dir "${TMP_DIR}"
 
 # redirect podman image/container storage off the boot disk
 if command -v podman &>/dev/null; then
-    mkdir -p /mnt/sdb/containers/storage /mnt/sdb/containers/run
+    ensure_writable_dir "${PKG_ROOT}/containers/storage"
+    ensure_writable_dir "${PKG_ROOT}/containers/run"
     mkdir -p ~/.config/containers
-    mkdir -p /mnt/sdb/tmp/containers
-    PODMAN_RUN_ROOT="/mnt/sdb/tmp/containers"
-    mkdir -p /mnt/sdb/containers/storage "${PODMAN_RUN_ROOT}" "${TMP_DIR}"
+    ensure_writable_dir "${TMP_DIR}/containers"
+    PODMAN_RUN_ROOT="${TMP_DIR}/containers"
+    ensure_writable_dir "${PODMAN_RUN_ROOT}"
 
-    # storage.conf: image layers on /mnt/sdb, runtime state on local tmpfs
+    # storage.conf: image layers under /mnt/sdb/packages, runtime state under /mnt/tmp
     if [ ! -f ~/.config/containers/storage.conf ]; then
         cat > ~/.config/containers/storage.conf <<EOF
 [storage]
 driver = "overlay"
-graphRoot = "/mnt/sdb/containers/storage"
-# runRoot must be on local tmpfs - crun bind-mounts /etc/hosts into container
-# rootfs and this fails on /mnt/sdb even with fuse-overlayfs
+graphRoot = "${PKG_ROOT}/containers/storage"
 runRoot = "${PODMAN_RUN_ROOT}"
 
 [storage.options.overlay]
@@ -72,16 +73,14 @@ EOF
         info "podman storage.conf written"
     fi
 
-    # containers.conf: force buildah tmpdir off /mnt/sdb
-    # this VM sets TMPDIR=/mnt/sdb/tmp; buildah inherits it and puts container
-    # rootfs temp mounts there, where crun cannot open /etc/hosts (EPERM)
+    # keep buildah temp data with the configured data root
     if [ ! -f ~/.config/containers/containers.conf ]; then
-        mkdir -p /mnt/sdb/tmp/containers-tmp
+        ensure_writable_dir "${TMP_DIR}/containers-tmp"
         cat > ~/.config/containers/containers.conf <<EOF
 [engine]
-tmp_dir = "/mnt/sdb/tmp/containers-tmp"
+tmp_dir = "${TMP_DIR}/containers-tmp"
 EOF
-        info "podman containers.conf written (tmp_dir -> /mnt/sdb/tmp/containers-tmp)"
+        info "podman containers.conf written (tmp_dir -> ${TMP_DIR}/containers-tmp)"
     fi
 fi
 
@@ -109,7 +108,7 @@ elif command -v docker-compose &>/dev/null; then
     COMPOSE_CMD="docker-compose"
 else
     if ! PYTHONPATH="${PYTHON_PACKAGES_DIR}" python3 -c "import podman_compose" 2>/dev/null; then
-        info "installing podman-compose to /mnt/sdb/packages/python..."
+        info "installing podman-compose to ${PYTHON_PACKAGES_DIR}..."
         pip3 install --target "${PYTHON_PACKAGES_DIR}" podman-compose \
             || error "could not install podman-compose"
     fi
@@ -166,6 +165,7 @@ copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/graphql-api/Dockerfile" \
     "${PATCHES_DIR}/graphql-api/Dockerfile" \
     "${PATCHES_DIR}/graphql-api/src/Dockerfile"
 copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/browser/Dockerfile" \
+    "${PATCHES_DIR}/Dockerfile" \
     "${PATCHES_DIR}/browser/Dockerfile"
 
 # exclude host node_modules and .git from the docker/podman build context
@@ -177,8 +177,7 @@ info "patches applied"
 
 # ── 4. install node dependencies ──────────────────────────────────────────────
 
-PNPM_PACKAGES_DIR="/mnt/sdb/packages"
-mkdir -p "${PNPM_PACKAGES_DIR}"
+ensure_writable_dir "${PNPM_PACKAGES_DIR}"
 
 # redirect every pnpm directory off the boot disk:
 #   store-dir   - content-addressable package cache
@@ -236,7 +235,9 @@ echo "    cd gnomad-browser && TMPDIR=/tmp ${COMPOSE_CMD} up --build"
 echo ""
 echo " 3. export cohort variants to elasticsearch:"
 echo "    python gnomad-browser/data-pipeline/cohort_export.py \\"
-echo "        --manifest-path /mnt/sdb/gvcf_ustina/ingest_manifest.json"
+echo "        --mt-path /path/to/cohort_annotated.mt \\"
+echo "        --es-url http://localhost:9200 \\"
+echo "        --index cohort_variants"
 echo ""
 echo " 4. open http://localhost:3000 and select dataset: 'Cohort'"
 echo ""

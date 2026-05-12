@@ -71,3 +71,4 @@ HPO data comes from two sources joined by `HPO_ID`:
 - gnomAD source in docs is v2.1.1 exomes with `AF` and `AF_nfe`.
 - CADD and ClinVar are expected through VEP/custom annotation paths, but exact production setup
   still needs confirmation.
+- `annotation_sources.md` is the detailed field-to-source reference.

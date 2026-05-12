@@ -56,6 +56,9 @@ Current test panel CSV fields:
 
 - `docs/pipeline/MEMORY.md`: Hail/VDS/MatrixTable, metadata merge, AF, fixture rules.
 - `browser/MEMORY.md`: Elasticsearch schema, GraphQL routing, browser dataset assumptions.
+- `memory/project_pipeline_status.md`: dated server pipeline status.
+- `memory/project_server_infrastructure.md`: dated server paths and Podman/Docker notes.
+- `memory/project_packaging_decision.md`: dated packaging decision.
 
 ## Open Questions
 

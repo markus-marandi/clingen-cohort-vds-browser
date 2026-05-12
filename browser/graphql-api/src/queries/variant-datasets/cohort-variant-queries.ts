@@ -11,6 +11,9 @@ import { UserVisibleError } from '../../errors'
 
 const COHORT_VARIANT_INDEX = 'cohort_variants'
 
+const getCohortFrequency = (source: any, annotatedField: string, fallbackField: string) =>
+  source[annotatedField] ?? source[fallbackField] ?? null
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 const formatVariant = (source: any) => ({
@@ -21,10 +24,10 @@ const formatVariant = (source: any) => ({
   alt: source.alt,
   rsids: source.rsids ?? [],
   exome: {
-    ac: source.ac,
-    an: source.an,
-    af: source.af,
-    homozygote_count: source.n_hom,
+    ac: getCohortFrequency(source, 'ac_total', 'ac'),
+    an: getCohortFrequency(source, 'an_total', 'an'),
+    af: getCohortFrequency(source, 'af_total', 'af'),
+    homozygote_count: getCohortFrequency(source, 'hom_count', 'n_hom'),
     filters: source.filters ?? [],
   },
   // genome slot is empty for exome-only cohorts

@@ -25,8 +25,10 @@ Read `MEMORY.md` first, then only the scoped memory file for the area you touch:
 
 - `docs/pipeline/MEMORY.md` for Hail, VDS, MatrixTable, metadata, and AF rules.
 - `browser/MEMORY.md` for Elasticsearch, GraphQL, and gnomAD browser assumptions.
+- `memory/project_*.md` for dated project notes from prior server and packaging work.
 
-Use `TODO.md` as the roadmap index. Use scoped `TODO.md` files for implementation details.
+Use `TODO.md` as the roadmap index. Use scoped `TODO.md` and `AGENTS.md` files for implementation
+details.
 
 ## Local Setup
 
@@ -113,6 +115,7 @@ Document any skipped check in the final response.
 
 - Prefer small, direct changes that match existing scripts and docs.
 - Do not commit raw VCF/GVCF, VDS, MatrixTable, Hail logs, or generated `gnomad-browser/` output.
-- Do not add credentials or internal server details to tracked docs.
+- Do not add credentials, PHI, or private sample data to tracked docs.
+- Keep server paths only in explicit project memory notes when they are needed for reproducibility.
 - Keep root docs concise; move area-specific details into scoped memory and TODO files.
 

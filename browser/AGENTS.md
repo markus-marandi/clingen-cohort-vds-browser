@@ -10,6 +10,8 @@ patched by root `setup.sh`.
 Patch targets:
 
 - `browser/docker-compose.yml`
+- `browser/.dockerignore`
+- `browser/Dockerfile`
 - `browser/data-pipeline/cohort_export.py`
 - `browser/graphql-api/src/datasets.ts`
 - `browser/graphql-api/src/queries/variant-queries.ts`
