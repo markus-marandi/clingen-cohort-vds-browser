@@ -156,6 +156,33 @@ cp "${PATCHES_DIR}/graphql-api/src/datasets.ts" \
 cp "${PATCHES_DIR}/graphql-api/src/queries/variant-queries.ts" \
    "${GNOMAD_BROWSER_DIR}/graphql-api/src/queries/variant-queries.ts"
 
+# replacement: dataset-id.graphql (adds 'cohort' to DatasetId enum)
+cp "${PATCHES_DIR}/graphql-api/src/graphql/types/dataset-id.graphql" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/dataset-id.graphql"
+
+# replacement: dataset-metadata/metadata.ts (adds 'cohort' label + metadata entry)
+cp "${PATCHES_DIR}/dataset-metadata/metadata.ts" \
+   "${GNOMAD_BROWSER_DIR}/dataset-metadata/metadata.ts"
+
+# replacement: variant.graphql (adds cohort annotation fields to VariantDetails)
+cp "${PATCHES_DIR}/graphql-api/src/graphql/types/variant.graphql" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/variant.graphql"
+
+# replacement: browser UI source files (cohort default dataset, search box, variant page)
+cp "${PATCHES_DIR}/browser-src/Routes.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/Routes.tsx"
+cp "${PATCHES_DIR}/browser-src/SearchRedirectPage.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/SearchRedirectPage.tsx"
+cp "${PATCHES_DIR}/browser-src/Searchbox.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/Searchbox.tsx"
+cp "${PATCHES_DIR}/browser-src/VariantPageRouter.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/VariantPageRouter.tsx"
+
+# new file: cohort-specific variant detail page
+mkdir -p "${GNOMAD_BROWSER_DIR}/browser/src/VariantPage"
+cp "${PATCHES_DIR}/browser-src/VariantPage/CohortVariantPage.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/VariantPage/CohortVariantPage.tsx"
+
 # docker-compose for local dev
 cp "${PATCHES_DIR}/docker-compose.yml" \
    "${GNOMAD_BROWSER_DIR}/docker-compose.yml"

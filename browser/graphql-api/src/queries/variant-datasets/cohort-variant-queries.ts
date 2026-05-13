@@ -11,28 +11,60 @@ import { UserVisibleError } from '../../errors'
 
 const COHORT_VARIANT_INDEX = 'cohort_variants'
 
-const getCohortFrequency = (source: any, annotatedField: string, fallbackField: string) =>
-  source[annotatedField] ?? source[fallbackField] ?? null
-
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-const formatVariant = (source: any) => ({
-  variant_id: source.variant_id,
-  chrom: source.chrom,
-  pos: source.pos,
-  ref: source.ref,
-  alt: source.alt,
-  rsids: source.rsids ?? [],
-  exome: {
-    ac: getCohortFrequency(source, 'ac_total', 'ac'),
-    an: getCohortFrequency(source, 'an_total', 'an'),
-    af: getCohortFrequency(source, 'af_total', 'af'),
-    homozygote_count: getCohortFrequency(source, 'hom_count', 'n_hom'),
-    filters: source.filters ?? [],
-  },
-  // genome slot is empty for exome-only cohorts
-  genome: null,
-})
+const formatVariant = (source: any) => {
+  // ES data from annotated MT uses ac_total/an_total/af_total/hom_count.
+  // VDS-fallback export uses ac/an/af/n_hom. Support both.
+  const ac = source.ac_total ?? source.ac ?? null
+  const an = source.an_total ?? source.an ?? null
+  const af = source.af_total ?? source.af ?? null
+  const hom = source.hom_count ?? source.n_hom ?? null
+
+  return {
+    variant_id: source.variant_id,
+    variantId: source.variant_id,
+    reference_genome: 'GRCh37',
+    chrom: source.chrom,
+    pos: source.pos,
+    ref: source.ref,
+    alt: source.alt,
+    rsids: source.rsids ?? [],
+    colocated_variants: [],
+    colocatedVariants: [],
+    multi_nucleotide_variants: [],
+    multiNucleotideVariants: [],
+    flags: [],
+    coverage: { exome: null, genome: null },
+    lof_curations: null,
+    transcript_consequences: null,
+    sortedTranscriptConsequences: null,
+    in_silico_predictors: null,
+    non_coding_constraint: null,
+    // cohort-specific annotation fields (returned as top-level for CohortVariantPage)
+    gene_symbol: source.gene_symbol ?? null,
+    consequence: source.consequence ?? null,
+    impact: source.impact ?? null,
+    cdna: source.cdna ?? null,
+    p_nomen: source.p_nomen ?? null,
+    cadd_score: source.cadd_score ?? null,
+    clinvar_sig: source.clinvar_sig ?? null,
+    gnomad_af: source.gnomad_af ?? null,
+    gnomad_nonfin: source.gnomad_nonfin ?? null,
+    exome: {
+      ac,
+      an,
+      af,
+      homozygote_count: hom,
+      filters: source.filters ?? [],
+      flags: [],
+      populations: [],
+      quality_metrics: null,
+    },
+    genome: null,
+    joint: null,
+  }
+}
 
 const regionFilter = (chrom: string, start: number, stop: number) => [
   { term: { chrom } },
