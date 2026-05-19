@@ -45,6 +45,61 @@ Expected local services:
 - GraphQL API: `http://localhost:8000`
 - Browser UI: `http://localhost:3000`
 
+## Pipeline TUI
+
+The Textual dashboard wraps the ingest, annotate, and export scripts in one terminal UI with
+step cards, live logs, progress parsing, manifest history, and launch confirmation dialogs.
+
+On `oligo-VM`, run the dashboard through the launcher:
+
+```bash
+cd /mnt/sdb/projects/clingen-cohort-vds-browser
+scripts/clingen-tui
+```
+
+From a Mac with `oligo-VM` in SSH config, install or copy `scripts/clingen-tui` to a directory on
+`PATH` such as `~/.local/bin`, then launch it from any directory:
+
+```bash
+clingen-tui
+```
+
+The launcher runs the TUI in its own Python environment and points pipeline subprocesses at the
+Hail environment:
+
+```bash
+CLINGEN_PIPELINE_PYTHON=/mnt/sdb/venvs/py310/bin/python3 \
+    /mnt/sdb/venvs/clingen-tui/bin/python3 -m tui
+```
+
+Keep the TUI environment separate from the Hail environment. Current Textual releases require a
+newer `rich` package than Hail allows, so installing Textual directly into the Hail venv can break
+pipeline imports.
+
+Default VM paths are prefilled when `.tui_config.json` does not exist:
+
+| Field | Default |
+|---|---|
+| Raw GVCFs | `/mnt/sdb/data/raw_gvcfs/andmebaas_test_valim` |
+| Filtered GVCFs | `/mnt/sdb/data/filtered_gvcfs/andmebaas_test_valim_filtered` |
+| Output VDS dir | `/mnt/sdb/data/vds` |
+| Temp base | `/mnt/sdb/data/tmp/combiner_temp` |
+| Manifest | `/mnt/sdb/data/logs/ingest_manifest.json` |
+| Input VDS | `/mnt/sdb/data/vds/cohort_2026-03-11_run001.vds` |
+| Output MT | `/mnt/sdb/data/mt/cohort_annotated.mt` |
+| gnomAD HT | `/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht` |
+| Elasticsearch | `http://localhost:9200` |
+| ES index | `cohort_variants` |
+
+`.tui_config.json` is intentionally ignored because it contains machine-specific paths and operator
+preferences. Defaults can also be overridden with environment variables:
+
+```bash
+CLINGEN_RAW_GVCF_DIR=/path/to/raw \
+CLINGEN_MANIFEST_PATH=/path/to/ingest_manifest.json \
+scripts/clingen-tui
+```
+
 ## Pipeline Commands
 
 Ingest GVCFs into VDS:
