@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REMOTE_HOST="${CLINGEN_TUI_HOST:-oligo-VM}"
+PROJECT_DIR="${CLINGEN_TUI_PROJECT:-/mnt/sdb/projects/clingen-cohort-vds-browser}"
+TUI_PYTHON="${CLINGEN_TUI_PYTHON:-/mnt/sdb/venvs/clingen-tui/bin/python3}"
+PIPELINE_PYTHON="${CLINGEN_PIPELINE_PYTHON:-/mnt/sdb/venvs/py310/bin/python3}"
+
+usage() {
+  cat <<EOF
+Usage: clingen-tui [--print-command]
+
+Launch the ClinGen cohort pipeline TUI.
+
+Environment overrides:
+  CLINGEN_TUI_HOST        SSH host for Mac-side launch (default: oligo-VM)
+  CLINGEN_TUI_PROJECT     VM project path (default: $PROJECT_DIR)
+  CLINGEN_TUI_PYTHON      TUI Python path (default: $TUI_PYTHON)
+  CLINGEN_PIPELINE_PYTHON Pipeline Python path (default: $PIPELINE_PYTHON)
+EOF
+}
+
+run_local() {
+  cd "$PROJECT_DIR"
+  CLINGEN_PIPELINE_PYTHON="$PIPELINE_PYTHON" exec "$TUI_PYTHON" -m tui "$@"
+}
+
+base_remote_cmd="cd $(printf '%q' "$PROJECT_DIR") && CLINGEN_PIPELINE_PYTHON=$(printf '%q' "$PIPELINE_PYTHON") $(printf '%q' "$TUI_PYTHON") -m tui"
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  --print-command)
+    if [[ -x "$TUI_PYTHON" && -d "$PROJECT_DIR" ]]; then
+      echo "$base_remote_cmd"
+    else
+      echo "ssh -t $(printf '%q' "$REMOTE_HOST") $(printf '%q' "$base_remote_cmd")"
+    fi
+    exit 0
+    ;;
+esac
+
+if [[ -x "$TUI_PYTHON" && -d "$PROJECT_DIR" ]]; then
+  run_local "$@"
+fi
+
+remote_cmd="$base_remote_cmd"
+for arg in "$@"; do
+  remote_cmd+=" $(printf '%q' "$arg")"
+done
+
+exec ssh -t "$REMOTE_HOST" "$remote_cmd"

@@ -9,6 +9,7 @@ gnomad-browser/
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
 
 # manifest is environment-specific (contains absolute paths and run history)
 ingest_manifest.json
@@ -21,6 +22,9 @@ andmebaas_test_valim_filtered/
 
 # machine-specific spark config
 spark_conf.json
+
+# machine-specific TUI defaults
+.tui_config.json
 
 # hail logs
 hail-*.log

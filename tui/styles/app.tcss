@@ -1,0 +1,196 @@
+Screen {
+    background: #101418;
+    color: #d9e2ec;
+}
+
+Header {
+    background: #18212a;
+}
+
+TabbedContent {
+    height: 1fr;
+}
+
+TabPane {
+    padding: 1;
+}
+
+#dashboard-tab,
+.step-tab {
+    height: 1fr;
+}
+
+#dashboard-cards {
+    height: 14;
+    margin-bottom: 1;
+}
+
+.step-card {
+    width: 1fr;
+    height: 100%;
+    margin-right: 1;
+    padding: 1;
+    border: round #394956;
+    background: #151b21;
+}
+
+.step-card-header {
+    height: 1;
+}
+
+.step-card-title {
+    width: 1fr;
+    text-style: bold;
+}
+
+.status-badge {
+    width: 10;
+    content-align: center middle;
+    text-style: bold;
+}
+
+.status-badge.idle {
+    color: #a8b3bd;
+}
+
+.status-badge.running {
+    color: #ffd166;
+}
+
+.status-badge.done {
+    color: #5ee29b;
+}
+
+.status-badge.failed {
+    color: #ff6b6b;
+}
+
+.compact-progress {
+    height: 1;
+    margin-top: 1;
+}
+
+.step-summary,
+.progress-label {
+    color: #a8b3bd;
+}
+
+.mini-log {
+    height: 7;
+    margin-top: 1;
+    border: tall #26323b;
+}
+
+.section-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#manifest-table {
+    height: 1fr;
+    border: round #394956;
+}
+
+.resume-banner {
+    height: 1;
+    margin-bottom: 1;
+    color: #ffd166;
+    text-style: bold;
+}
+
+.hidden {
+    display: none;
+}
+
+.config-form {
+    height: auto;
+    margin-bottom: 1;
+    padding: 1;
+    border: round #394956;
+    background: #151b21;
+}
+
+.form-row {
+    height: 3;
+}
+
+.field-label {
+    width: 22;
+    content-align: left middle;
+    color: #a8b3bd;
+}
+
+Input,
+Checkbox {
+    width: 1fr;
+}
+
+PathInput.missing,
+IntInput.invalid {
+    border: tall #ff6b6b;
+}
+
+.step-actions {
+    height: 3;
+    margin-bottom: 1;
+}
+
+.step-actions Button {
+    width: 16;
+    margin-right: 1;
+}
+
+.step-progress {
+    height: 1;
+    margin-bottom: 1;
+}
+
+.log-pane {
+    height: 1fr;
+    border: round #394956;
+}
+
+.log-toolbar {
+    height: 3;
+    padding: 0 1;
+}
+
+.log-toolbar Button {
+    width: 12;
+    margin-right: 1;
+}
+
+RichLog {
+    height: 1fr;
+    background: #0d1115;
+}
+
+#confirm-dialog {
+    width: 80%;
+    height: auto;
+    padding: 1 2;
+    border: round #6c7a86;
+    background: #151b21;
+}
+
+.dialog-title {
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#launch-command {
+    padding: 1;
+    border: tall #394956;
+    background: #0d1115;
+}
+
+.dialog-actions {
+    height: 3;
+    margin-top: 1;
+    align-horizontal: right;
+}
+
+.dialog-actions Button {
+    width: 12;
+    margin-left: 1;
+}
