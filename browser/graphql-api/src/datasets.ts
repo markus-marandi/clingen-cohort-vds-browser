@@ -1,5 +1,5 @@
 export const DATASET_LABELS = {
-  cohort: 'Cohort',
+  cohort: 'Tartu University Hospital',
   gnomad_r4: 'gnomAD v4',
   gnomad_r4_non_ukb: 'gnomAD v4 (non-UK Biobank)',
   gnomad_cnv_r4: 'gnomAD v4 cnv',

@@ -88,7 +88,7 @@ type Props = {
 
 const CohortVariantPage = ({ datasetId, variantId }: Props) => (
   <Page>
-    <DocumentTitle title={`${variantId} | Cohort`} />
+    <DocumentTitle title={`${variantId} | Tartu University Hospital`} />
     <PageHeading>
       SNV: {variantId}
     </PageHeading>
@@ -124,7 +124,7 @@ const CohortVariantPage = ({ datasetId, variantId }: Props) => (
             </Section>
 
             <Section>
-              <SectionHeading>Cohort Frequency</SectionHeading>
+              <SectionHeading>Tartu University Hospital Frequency</SectionHeading>
               <Table>
                 <tbody>
                   <Row label="Allele Count" value={exome.ac} />
