@@ -104,6 +104,8 @@ TabPane {
 
 .config-form {
     height: auto;
+    max-height: 24;
+    overflow-y: auto;
     margin-bottom: 1;
     padding: 1;
     border: round #394956;

@@ -1,8 +1,10 @@
 # Architecture Specification
 
-Cohort variant browser for internal WGS/WES data. Stores genotypes in Hail VDS, annotates
-variants with VEP + CADD 1.6 + dbNSFP + ClinVar + gnomAD, and serves results through a patched
-gnomAD browser UI on the internal network with authenticated access.
+_Last updated: 2026-05-14_
+
+Cohort variant browser for internal WGS/WES data. Concatenates and stores genotypes in Hail VDS,
+annotates variants with VEP + CADD 1.6 + dbNSFP + ClinVar + gnomAD, and serves results through a
+patched gnomAD browser UI on the internal network with authenticated access.
 
 ---
 
@@ -67,29 +69,40 @@ raw GVCFs
 
 ### Genomic data per sample — entry-level on MatrixTable
 
-| Field | Source |
-|---|---|
-| `sample_id` | column key |
-| `variant_id` | row key |
-| `chrom`, `pos`, `ref`, `alt` | locus / alleles |
-| `genotype` | `entry.GT` |
-| `depth` | `entry.DP` |
-| `gq` | `entry.GQ` |
-| `var_pct` | alt allele fraction in this sample |
-
-### Sample data — column annotations (updated schema)
-
-| Field | Previous | Notes |
+| Field | Source | Notes |
 |---|---|---|
-| `sample_id` | same | join key across all tables |
-| `chromosomal_sex` | — | **new** — inferred from genotype (X heterozygosity / chrY coverage); values: XX, XY, ambiguous |
-| `sex_assigned` | `sex` | **renamed** — sex from clinical metadata (social/assigned); values: Male, Female, Other, Unknown |
-| `date_of_birth` | `age` | **renamed** — ISO date string; normalize to YYYY-MM-DD before loading |
-| `date_seq` | same | date of sequencing run |
-| `run_id` | same | sequencing run identifier |
-| `care_site` | same | ordering institution (TUH, etc.) |
-| `health_status` | same | Affected / Non-affected |
-| `material` | — | **new** — biological source material: blood, tissue, saliva, buccal swab, etc. |
+| `sample_id` | column key | |
+| `variant_id` | row key | |
+| `chrom`, `pos`, `ref`, `alt` | locus / alleles | |
+| `genotype` | `entry.GT` | |
+| `depth` | `entry.DP` | |
+| `gq` | `entry.GQ` | |
+| `var_pct` | `entry.AD` | alt allele fraction in this sample |
+| `in_report` | clinical metadata | `yes` / `no` — whether this variant is included in the clinical report for this sample |
+
+### In Report — join table (sample × variant)
+
+| Field | Notes |
+|---|---|
+| `sample_id` | |
+| `variant_id` | |
+
+Populated from the laboratory information system. One row per (sample, variant) pair that
+appears in a signed-out clinical report.
+
+### Sample data — column annotations
+
+| Field | Notes |
+|---|---|
+| `sample_id` | join key across all tables |
+| `sex_assigned` | sex from clinical metadata (social/assigned); values: Male, Female, Other, Unknown |
+| `sex_chr` | chromosomal sex inferred from genotype (X heterozygosity / chrY coverage); values: Male, Female, ambiguous |
+| `date_of_birth` | ISO date string YYYY-MM-DD |
+| `date_seq` | date of sequencing run |
+| `run_id` | sequencing run identifier |
+| `material` | biological source material: blood, tissue, saliva, buccal swab, etc. |
+| `care_site` | ordering institution (TUH, etc.) |
+| `health_status` | Affected / Non-affected |
 
 ### Procedure / input parameters — per sample-run
 
@@ -137,18 +150,16 @@ One sample may appear on multiple rows (one per ordered panel).
 - Hail call: `hl.vep(mt, config='vep_settings.json')`
 - Flags: `--pick --canonical --symbol --HGVS --MAX_AF`
 
-### CADD 1.6 (decided)
+### CADD 1.6
 
-- Plugin: `CADD.pm` — currently at `Plugins/CADD.pm` in the code repo; move to VEP plugins dir
-- Data files needed (download to `/mnt/sdb/reference/cadd_v1.6/`):
+- Plugin: `/mnt/sdb/projects/ensembl-vep/Plugins/CADD.pm`
+- Data files: `/mnt/sdb/reference/cadd_v1.6/` — `.tbi` placeholders in place; TSV files need downloading
   - `whole_genome_SNVs.tsv.gz` + `.tbi`
   - `InDels.tsv.gz` + `.tbi`
-- Download: `https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/`
 - VEP config line: `--plugin CADD,/mnt/sdb/reference/cadd_v1.6/whole_genome_SNVs.tsv.gz,/mnt/sdb/reference/cadd_v1.6/InDels.tsv.gz`
 - Fields: `CADD_RAW` (raw score), `CADD_PHRED` (scaled; use this for thresholds)
-- Replaces the v1.4 remote URL that produced a plugin warning in earlier runs
 
-### dbNSFP (decided, version TBD — recommend 4.8)
+### dbNSFP 4.8
 
 dbNSFP is a pre-computed database of functional annotations for all possible non-synonymous SNVs
 in the human genome. A single join provides REVEL, SIFT, PolyPhen-2, and many other scores,
@@ -179,15 +190,13 @@ Fields to extract:
 
 ### ClinVar
 
-- Source: `clinvar.vcf.gz` from NCBI — currently at `Plugins/clinvar.vcf.gz`
-- Move to: `/mnt/sdb/reference/clinvar/clinvar.vcf.gz`
+- File: `/mnt/sdb/reference/clinvar/clinvar.vcf.gz` (182 MB, in place)
 - Strategy: `hl.import_vcf` then join on `locus` + `alleles`
 - Update cadence: download new release every 3–6 months
 
 ### gnomAD v2.1.1 exomes
 
-- Local Hail Table: `Plugins/gnomad.exomes.r2.1.1.sites.ht` (63 GB)
-- Move to: `/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht`
+- Local Hail Table: `/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht` (59 GB, in place)
 - Join fields: `AF` (all pops), `AF_nfe` (Non-Finnish European)
 - Reference genome: GRCh37 — matches current pipeline
 
@@ -226,13 +235,9 @@ User laptop (internal network)
                   Elasticsearch :9200  ◄── bound to 127.0.0.1 only, not exposed
 ```
 
-### Authentication options
+### Authentication
 
-| Option | Complexity | Notes |
-|---|---|---|
-| **oauth2-proxy** (recommended) | Medium | Delegates to University SSO / OIDC. No user list to maintain in the app. |
-| **nginx HTTP basic auth** | Low | `.htpasswd` file; acceptable for a small known group. |
-| **VPN-only** | Low | No app-level auth; network access serves as the gate. Only safe if VPN membership is strictly controlled. |
+nginx HTTP basic auth — `.htpasswd` file, managed manually for the small known user group.
 
 ### Security requirements
 
@@ -244,10 +249,9 @@ User laptop (internal network)
 - Session timeout: configure in the auth proxy (≤8 h idle)
 - TLS certificate: use internal CA cert or a self-signed cert accepted by internal browsers
 
-### Docker Compose additions needed
+### nginx additions needed
 
-- `nginx` service with TLS config and proxy pass to `:3000` and `:8000`
-- `oauth2-proxy` service (or instructions for basic auth `.htpasswd` setup)
+- `nginx` service with TLS config, HTTP basic auth, and proxy pass to `:3000` / `:8000`
 - Elasticsearch `network.host: 127.0.0.1` in config
 - Healthcheck asserting Elasticsearch is not reachable from outside the Docker bridge network
 
@@ -267,11 +271,23 @@ See `browser/TODO.md` for the outstanding browser stack tasks.
 
 ---
 
+## Current VM State (as of 2026-05-14)
+
+```
+/mnt/sdb/projects/clingen-cohort-vds-browser/   ← code (latest main)
+/mnt/sdb/projects/ensembl-vep/Plugins/CADD.pm   ← plugin in place
+/mnt/sdb/reference/clinvar/                      ← ClinVar VCF (182 MB) in place
+/mnt/sdb/reference/gnomad/                       ← gnomAD HT + VCF (59 GB) in place
+/mnt/sdb/reference/cadd_v1.6/                    ← .tbi placeholders only; TSV files need downloading
+/mnt/sdb/data/vds/                               ← cohort_10k.vds + cohort_2026-03-11_run001.vds
+/mnt/sdb/data/mt/                                ← cohort_annotated.mt
+/mnt/sdb/data/raw_gvcfs/ + filtered_gvcfs/       ← GVCF inputs
+```
+
 ## Open Decisions
 
 - dbNSFP integration method: VEP plugin (single VEP pass) vs. standalone Hail Table join
-- dbNSFP version: 4.8 recommended; confirm GRCh37 compatibility
-- Auth method for browser: oauth2-proxy vs. basic auth vs. VPN-only
+- CADD 1.6 TSV files still need downloading to `/mnt/sdb/reference/cadd_v1.6/`
 - TLS certificate source: internal CA vs. self-signed
-- Whether `chromosomal_sex` inference runs inside `annotate_cohort.py` or as a pre-processing step
+- Whether `sex_chr` inference runs inside `annotate_cohort.py` or as a pre-processing step
 - HPO filter UI exposure: first demo or later phase
