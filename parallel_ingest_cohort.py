@@ -168,7 +168,7 @@ def process_single_gvcf(args):
 
     cmd = (
         f'bcftools annotate --rename-chrs {mapping_path} {in_path} 2>/dev/null | '
-        f'bcftools view -r {regions_str} -O z -o {out_path} 2>/dev/null'
+        f'bcftools view -t {regions_str} -O z -o {out_path} 2>/dev/null'
     )
 
     try:
