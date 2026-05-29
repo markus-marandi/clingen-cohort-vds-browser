@@ -26,6 +26,11 @@ spark_conf.json
 # machine-specific TUI defaults
 .tui_config.json
 
+# local design/reference artifacts
+design-mockup.html
+docs/*.excalidraw
+browser/TYK_logo_est_ring_varv_RGB-1.png
+
 # hail logs
 hail-*.log
 /hail.log
