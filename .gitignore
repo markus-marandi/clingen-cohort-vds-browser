@@ -29,7 +29,6 @@ spark_conf.json
 # local design/reference artifacts
 design-mockup.html
 docs/*.excalidraw
-browser/TYK_logo_est_ring_varv_RGB-1.png
 
 # hail logs
 hail-*.log
