@@ -173,15 +173,18 @@ const fetchVariantsByTranscript = async (esClient: any, transcript: any) => {
 // ── search / autocomplete ─────────────────────────────────────────────────────
 
 const fetchMatchingVariants = async (esClient: any, { query, limit = 5 }: any) => {
+  const normalizedQuery = query?.variantId ?? query?.rsid ?? query?.query ?? query
+
   const response = await esClient.search({
     index: COHORT_VARIANT_INDEX,
     body: {
       query: {
         bool: {
           should: [
-            { prefix: { variant_id: query } },
-            { term: { rsids: query } },
+            { prefix: { variant_id: normalizedQuery } },
+            { term: { rsids: normalizedQuery } },
           ],
+          minimum_should_match: 1,
         },
       },
     },
@@ -197,6 +200,180 @@ const fetchMatchingVariants = async (esClient: any, { query, limit = 5 }: any) =
   }))
 }
 
+const formatConsequenceLabel = (value: string) => {
+  const firstConsequence = value.split('&')[0]
+  return firstConsequence.replace(/_/g, ' ')
+}
+
+const parseRegionSearchQuery = (query: string) => {
+  const match = query.trim().match(/^([0-9]{1,2}|X|Y|M|MT)[:-]([0-9,]+)(?:[:-]([0-9,]+))?$/i)
+
+  if (!match) {
+    return null
+  }
+
+  const chrom = match[1].toUpperCase() === 'MT' ? 'M' : match[1].toUpperCase()
+  const start = Number(match[2].replace(/,/g, ''))
+  const stop = Number((match[3] || match[2]).replace(/,/g, ''))
+
+  if (!Number.isFinite(start) || !Number.isFinite(stop)) {
+    return null
+  }
+
+  return {
+    chrom,
+    start: Math.min(start, stop),
+    stop: Math.max(start, stop),
+  }
+}
+
+const formatSearchVariantResult = (source: any, context?: string) => ({
+  label: context ? `${source.variant_id} (${context})` : source.variant_id,
+  value: `/variant/${source.variant_id}?dataset=cohort`,
+})
+
+const formatGeneResult = (bucket: any) => {
+  const topVariant = bucket.top_variant.hits.hits[0]?._source
+
+  if (!topVariant) {
+    return null
+  }
+
+  return formatSearchVariantResult(
+    topVariant,
+    `${bucket.key}, ${bucket.doc_count.toLocaleString()} variants`
+  )
+}
+
+const fetchCohortSearchResults = async (esClient: any, query: string) => {
+  const trimmedQuery = query.trim()
+  const upperQuery = trimmedQuery.toUpperCase()
+
+  if (!trimmedQuery) {
+    return []
+  }
+
+  const region = parseRegionSearchQuery(trimmedQuery)
+
+  if (region) {
+    const regionResponse = await esClient.search({
+      index: COHORT_VARIANT_INDEX,
+      body: {
+        query: {
+          bool: {
+            filter: regionFilter(region.chrom, region.start, region.stop),
+          },
+        },
+        sort: [{ pos: 'asc' }],
+      },
+      size: 25,
+    })
+
+    const regionLabel = `${region.chrom}-${region.start}-${region.stop}`
+
+    return regionResponse.body.hits.hits
+      .sort((a: any, b: any) => {
+        const aAlleleLength = (a._source.ref || '').length + (a._source.alt || '').length
+        const bAlleleLength = (b._source.ref || '').length + (b._source.alt || '').length
+        return aAlleleLength - bAlleleLength || a._source.pos - b._source.pos
+      })
+      .slice(0, 5)
+      .map((h: any) => formatSearchVariantResult(h._source, regionLabel))
+  }
+
+  const variantResponse = await esClient.search({
+    index: COHORT_VARIANT_INDEX,
+    body: {
+      query: {
+        bool: {
+          should: [{ prefix: { variant_id: trimmedQuery } }, { term: { rsids: trimmedQuery } }],
+          minimum_should_match: 1,
+        },
+      },
+      sort: [{ pos: 'asc' }],
+    },
+    size: 5,
+  })
+
+  const variantResults = variantResponse.body.hits.hits.map((h: any) =>
+    formatSearchVariantResult(h._source)
+  )
+
+  const geneResponse = await esClient.search({
+    index: COHORT_VARIANT_INDEX,
+    body: {
+      query: {
+        bool: {
+          filter: [{ prefix: { gene_symbol: upperQuery } }],
+        },
+      },
+      aggs: {
+        genes: {
+          terms: { field: 'gene_symbol', size: 5, order: { _count: 'desc' } },
+          aggs: {
+            chrom: { terms: { field: 'chrom', size: 1 } },
+            start: { min: { field: 'pos' } },
+            stop: { max: { field: 'pos' } },
+            top_variant: {
+              top_hits: {
+                size: 1,
+                sort: [{ pos: 'asc' }],
+                _source: ['variant_id'],
+              },
+            },
+          },
+        },
+      },
+    },
+    size: 0,
+  })
+
+  const geneResults = geneResponse.body.aggregations.genes.buckets
+    .filter((bucket: any) => bucket.chrom.buckets.length > 0)
+    .map(formatGeneResult)
+    .filter(Boolean)
+
+  return [...variantResults, ...geneResults]
+}
+
+const fetchCohortSummary = async (esClient: any) => {
+  const response = await esClient.search({
+    index: COHORT_VARIANT_INDEX,
+    body: {
+      track_total_hits: true,
+      aggs: {
+        genes: { cardinality: { field: 'gene_symbol' } },
+        max_an: { max: { field: 'an_total' } },
+        clinvar: { filter: { exists: { field: 'clinvar_sig' } } },
+        consequences: { terms: { field: 'consequence', size: 6 } },
+        chromosomes: { terms: { field: 'chrom', size: 30 } },
+      },
+    },
+    size: 0,
+  })
+
+  const aggregations = response.body.aggregations
+  const variantCount = response.body.hits.total.value
+  const maxAn = aggregations.max_an.value
+
+  return {
+    variant_count: variantCount,
+    gene_count: aggregations.genes.value,
+    sample_count: maxAn ? Math.round(maxAn / 2) : null,
+    clinvar_count: aggregations.clinvar.doc_count,
+    consequence_counts: aggregations.consequences.buckets.map((bucket: any) => ({
+      id: bucket.key,
+      label: formatConsequenceLabel(bucket.key),
+      count: bucket.doc_count,
+    })),
+    chromosome_counts: aggregations.chromosomes.buckets.map((bucket: any) => ({
+      id: bucket.key,
+      label: `Chr ${bucket.key}`,
+      count: bucket.doc_count,
+    })),
+  }
+}
+
 export default {
   countVariantsInRegion,
   fetchVariantById,
@@ -204,4 +381,8 @@ export default {
   fetchVariantsByRegion,
   fetchVariantsByTranscript,
   fetchMatchingVariants,
+  fetchCohortSearchResults,
+  fetchCohortSummary,
 }
+
+export { fetchCohortSearchResults, fetchCohortSummary }

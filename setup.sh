@@ -168,13 +168,43 @@ cp "${PATCHES_DIR}/dataset-metadata/metadata.ts" \
 cp "${PATCHES_DIR}/graphql-api/src/graphql/types/variant.graphql" \
    "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/variant.graphql"
 
+# new files: cohort-native search and summary resolvers
+cp "${PATCHES_DIR}/graphql-api/src/graphql/types/cohort.graphql" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/cohort.graphql"
+cp "${PATCHES_DIR}/graphql-api/src/graphql/types/query.graphql" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/query.graphql"
+cp "${PATCHES_DIR}/graphql-api/src/graphql/resolvers/cohort.ts" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/resolvers/cohort.ts"
+cp "${PATCHES_DIR}/graphql-api/src/graphql/schema.ts" \
+   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/schema.ts"
+
 # replacement: browser UI source files (cohort default dataset, search box, variant page)
+cp "${PATCHES_DIR}/browser-src/App.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/App.tsx"
+cp "${PATCHES_DIR}/browser-src/Brand.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/Brand.tsx"
+cp "${PATCHES_DIR}/browser-src/tyk-logo.png" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/tyk-logo.png"
+cp "${PATCHES_DIR}/browser-src/DocumentTitle.ts" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/DocumentTitle.ts"
+cp "${PATCHES_DIR}/browser-src/GnomadPageHeading.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/GnomadPageHeading.tsx"
+cp "${PATCHES_DIR}/browser-src/HomePage.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/HomePage.tsx"
+cp "${PATCHES_DIR}/browser-src/InfoPage.ts" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/InfoPage.ts"
+cp "${PATCHES_DIR}/browser-src/NavBar.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/NavBar.tsx"
+cp "${PATCHES_DIR}/browser-src/index.html" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/index.html"
 cp "${PATCHES_DIR}/browser-src/Routes.tsx" \
    "${GNOMAD_BROWSER_DIR}/browser/src/Routes.tsx"
 cp "${PATCHES_DIR}/browser-src/SearchRedirectPage.tsx" \
    "${GNOMAD_BROWSER_DIR}/browser/src/SearchRedirectPage.tsx"
 cp "${PATCHES_DIR}/browser-src/Searchbox.tsx" \
    "${GNOMAD_BROWSER_DIR}/browser/src/Searchbox.tsx"
+cp "${PATCHES_DIR}/browser-src/search.ts" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/search.ts"
 cp "${PATCHES_DIR}/browser-src/VariantPageRouter.tsx" \
    "${GNOMAD_BROWSER_DIR}/browser/src/VariantPageRouter.tsx"
 

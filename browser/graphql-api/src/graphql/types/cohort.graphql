@@ -1,0 +1,19 @@
+type CohortSearchResult {
+  label: String!
+  value: String!
+}
+
+type CohortSummaryBucket {
+  id: String!
+  label: String!
+  count: Int!
+}
+
+type CohortSummary {
+  variant_count: Int!
+  gene_count: Int
+  sample_count: Int
+  clinvar_count: Int
+  consequence_counts: [CohortSummaryBucket!]!
+  chromosome_counts: [CohortSummaryBucket!]!
+}
