@@ -1,7 +1,13 @@
 # VM Directory Structure
 
-Canonical layout for `/mnt/sdb` on oligo-VM. All script paths and config files should reference
-these locations. Do not put code inside data directories or reference data inside the git repo.
+Canonical layout for `/mnt/sdb` on the internal analysis VM. All script paths and config files
+should reference these locations. Do not put code inside data directories or reference data inside
+the git repo.
+
+Production serving uses a second public/browser VM. That VM should not mirror this full layout: it
+should contain only the browser stack, public Elasticsearch storage, and sanitized variant-level
+export bundles. It must not contain raw GVCFs, VDS, MatrixTables, metadata tables, patient IDs,
+`sample_id`, or internal reference/data paths.
 
 ---
 
@@ -20,11 +26,6 @@ these locations. Do not put code inside data directories or reference data insid
 │   └── ref_fasta/                       ← ucsc.hg19.fasta
 │
 ├── reference/                           ← annotation reference files (NOT in git)
-│   ├── cadd_v1.6/                       ← CADD 1.6 score files (to download)
-│   │   ├── whole_genome_SNVs.tsv.gz
-│   │   ├── whole_genome_SNVs.tsv.gz.tbi
-│   │   ├── InDels.tsv.gz
-│   │   └── InDels.tsv.gz.tbi
 │   ├── clinvar/                         ← move from Plugins/clinvar.vcf.gz
 │   │   ├── clinvar.vcf.gz
 │   │   └── clinvar.vcf.gz.tbi
@@ -32,9 +33,9 @@ these locations. Do not put code inside data directories or reference data insid
 │   │   ├── gnomad.exomes.r2.1.1.sites.ht/
 │   │   ├── gnomad.exomes.r2.1.1.sites.vcf.bgz
 │   │   └── gnomad.exomes.r2.1.1.sites.vcf.bgz.tbi
-│   └── dbnsfp/                          ← dbNSFP 4.x files (to download)
-│       ├── dbNSFP4.8_variant.chr1.gz
-│       ├── dbNSFP4.8_variant.chr1.gz.tbi
+│   └── dbnsfp/                          ← dbNSFP v5.3.1 files (to download)
+│       ├── dbNSFP5.3.1_variant.chr1.gz
+│       ├── dbNSFP5.3.1_variant.chr1.gz.tbi
 │       └── ...
 │
 └── data/                                ← genomic data (never in git)
@@ -58,7 +59,6 @@ Run these manually on the VM. Each step is reversible before the next one.
 ### 1. Create target directories
 
 ```bash
-mkdir -p /mnt/sdb/reference/cadd_v1.6
 mkdir -p /mnt/sdb/reference/clinvar
 mkdir -p /mnt/sdb/reference/gnomad
 mkdir -p /mnt/sdb/reference/dbnsfp
@@ -91,11 +91,9 @@ mv Plugins/gnomad.exomes.r2.1.1.sites.ht      /mnt/sdb/reference/gnomad/
 mv Plugins/gnomad.exomes.r2.1.1.sites.vcf.bgz /mnt/sdb/reference/gnomad/
 mv Plugins/gnomad.exomes.r2.1.1.sites.vcf.bgz.tbi /mnt/sdb/reference/gnomad/
 
-# CADD plugin stays with VEP plugins directory, not reference data
-cp Plugins/CADD.pm /mnt/sdb/projects/ensembl-vep/Plugins/CADD.pm
-# move the CADD index files too (main TSV files are missing and need downloading)
-mv Plugins/whole_genome_SNVs_inclAnno.tsv.gz.tbi /mnt/sdb/reference/cadd_v1.6/
-mv Plugins/InDels_inclAnno.tsv.gz.tbi            /mnt/sdb/reference/cadd_v1.6/
+# Standalone CADD is no longer part of the target annotation plan.
+# Keep CADD through dbNSFP fields instead; discard old CADD placeholders after confirming they are
+# not needed by any active local run.
 
 # Plugins/ directory in repo should now be empty — remove it from git tracking
 rmdir Plugins  # only if empty
@@ -140,26 +138,12 @@ git -C /mnt/sdb/gvcf_ustina status
 rm -rf /mnt/sdb/gvcf_ustina/.git
 ```
 
-### 7. Download CADD 1.6
-
-The old CADD v1.4 remote URL is no longer valid. Download v1.6 locally (~200 GB for SNVs):
-
-```bash
-cd /mnt/sdb/reference/cadd_v1.6
-wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz
-wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/whole_genome_SNVs.tsv.gz.tbi
-wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz
-wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/InDels.tsv.gz.tbi
-```
-
-Note: the `.tbi` files that exist in `Plugins/` are from v1.4 and will not match v1.6 files.
-Discard the old `.tbi` files and use the new ones downloaded above.
-
-### 8. Download dbNSFP (when ready)
+### 7. Download dbNSFP (when ready)
 
 ```bash
 cd /mnt/sdb/reference/dbnsfp
-# register at https://sites.google.com/site/jpopgen/dbNSFP and download v4.8 GRCh37 build
+# register at https://www.dbnsfp.org/download and download dbNSFP v5.3.1
+# choose the branch/license and GRCh37/VEP-ready files appropriate for the deployment
 # then index each chromosome file:
 # bgzip and tabix each chr file if not pre-indexed
 ```
@@ -177,8 +161,7 @@ Update `vep_settings.json` to reflect the new reference locations:
     "--fasta", "/mnt/sdb/VEP/ref_fasta/ucsc.hg19.fasta",
     "--dir_cache", "/mnt/sdb/VEP/VEP_cache/",
     "--dir_plugins", "/mnt/sdb/projects/ensembl-vep/Plugins",
-    "--plugin", "CADD,/mnt/sdb/reference/cadd_v1.6/whole_genome_SNVs.tsv.gz,/mnt/sdb/reference/cadd_v1.6/InDels.tsv.gz",
-    "--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP4.8_variant.chr%s.gz,REVEL_score,SIFT_score,Polyphen2_HDIV_score,MetaRNN_score,ClinPred_score",
+    "--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP5.3.1_variant.chr%s.gz,<allowlisted_fields>",
     "..."
   ]
 }
@@ -194,8 +177,6 @@ Update `vep_settings.json` to reflect the new reference locations:
 | `gvcf_ustina/testing/*.md` (session notes) | delete |
 | `Plugins/clinvar.vcf.gz*` | `reference/clinvar/` |
 | `Plugins/gnomad.*` | `reference/gnomad/` |
-| `Plugins/CADD.pm` | `projects/ensembl-vep/Plugins/` |
-| `Plugins/*.tbi` (CADD v1.4) | discard; re-download v1.6 |
 | `gvcf_ustina/cohort_*.vds` | `data/vds/` |
 | `gvcf_ustina/cohort_annotated.mt` | `data/mt/` |
 | `gvcf_ustina/andmebaas_test_valim/` | `data/raw_gvcfs/` |

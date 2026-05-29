@@ -22,6 +22,10 @@ VDS is the genotype storage layer. Annotated MatrixTables are the preferred expo
 they contain `variant_qc()` cohort frequencies and annotations. VDS-only export exists as a basic
 fallback for smoke testing.
 
+Production data serving is split into two database tiers. The internal VM keeps patient-linked
+VDS/MatrixTable data and any internal Elasticsearch index. A separate public/browser VM receives
+only sanitized, variant-level Elasticsearch documents generated from an explicit export allowlist.
+
 ## Quick Start
 
 Install prerequisites: Python 3.11+, Hail 0.2, bcftools, tabix, Docker or Podman, pnpm, and git.
@@ -89,7 +93,7 @@ Default VM paths are prefilled when `.tui_config.json` does not exist:
 | Output MT | `/mnt/sdb/data/mt/cohort_annotated.mt` |
 | gnomAD HT | `/mnt/sdb/reference/gnomad/gnomad.exomes.r2.1.1.sites.ht` |
 | Elasticsearch | `http://localhost:9200` |
-| ES index | `cohort_variants` |
+| ES index | `cohort_variants` (local/demo default) |
 
 `.tui_config.json` is intentionally ignored because it contains machine-specific paths and operator
 preferences. Defaults can also be overridden with environment variables:

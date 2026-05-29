@@ -15,7 +15,7 @@ See `docs/ARCHITECTURE.md` for the full data model and pipeline overview.
 VDS  →  hl.vds.to_dense_mt()  →  annotate rows/cols  →  write annotated .mt
 ```
 
-- `mt.annotate_rows(...)` — variant-level annotations (VEP, CADD, dbNSFP, ClinVar, gnomAD, cohort freqs)
+- `mt.annotate_rows(...)` — variant-level annotations (VEP, dbNSFP, ClinVar, gnomAD, cohort freqs)
 - `mt.annotate_cols(...)` — sample-level annotations (clinical metadata)
 - `mt.write('cohort_annotated.mt')` — persist for downstream export
 
@@ -82,63 +82,50 @@ mt = hl.vep(mt, config='vep_settings.json')
 | `consequence` | `consequence_terms[0]` | most severe |
 | `impact` | `IMPACT` | HIGH / MODERATE / LOW / MODIFIER |
 
-CADD scores and dbNSFP scores are added through VEP plugins (see sections 4 and 5 below).
+Predictor scores are added from dbNSFP. CADD is retained as a dbNSFP-derived field, not as a
+separate CADD plugin/download.
 
 ---
 
-### 4. CADD 1.6 — deleteriousness score (decided)
-
-CADD (Combined Annotation Dependent Depletion) integrates hundreds of annotations into a single
-PHRED-scaled deleteriousness score. v1.6 is the current production release for GRCh37.
-
-**Plugin:** `CADD.pm` — copy to `/mnt/sdb/projects/ensembl-vep/Plugins/CADD.pm`
-
-**Data files** (download to `/mnt/sdb/reference/cadd_v1.6/`):
-```
-whole_genome_SNVs.tsv.gz      # ~200 GB
-whole_genome_SNVs.tsv.gz.tbi
-InDels.tsv.gz
-InDels.tsv.gz.tbi
-```
-Download from: `https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh37/`
-
-**VEP config line:**
-```
-"--plugin", "CADD,/mnt/sdb/reference/cadd_v1.6/whole_genome_SNVs.tsv.gz,/mnt/sdb/reference/cadd_v1.6/InDels.tsv.gz"
-```
-
-**Fields:**
-
-| Field | Notes |
-|---|---|
-| `cadd_raw` | raw CADD score |
-| `cadd_score` | PHRED-scaled score (use this for thresholds); ≥20 = top 1% most deleterious |
-
-> **Status:** CADD.pm plugin exists on VM. TSV data files need to be downloaded (v1.4 remote URL
-> was broken; v1.6 local files resolve the plugin warning seen in `STDOUT_warnings.txt`).
-
----
-
-### 5. dbNSFP — functional annotation database (decided)
+### 4. dbNSFP — functional annotation database (decided)
 
 dbNSFP is a pre-computed resource covering all possible non-synonymous SNVs in the human genome.
-A single join provides REVEL, SIFT, PolyPhen-2, MetaRNN, and ClinPred scores without running
-each predictor separately. Recommended version: 4.8 (GRCh37 build available).
+Use dbNSFP as the single source for functional predictors, including CADD, rather than maintaining
+a separate CADD plugin and data download.
 
-**License:** free for non-commercial academic research.
+**Current release:** dbNSFP v5.3.1, released January 1, 2026. v5.3 rebuilt the variant set from
+GENCODE Human release 49 / Ensembl 115. v5.3.1 adds popEVE and hs1/T2T-CHM13 v2.0 coordinates.
+
+**Coverage and contents to capture in notes/schema planning:**
+
+- 83,049,507 non-synonymous SNVs and 2,446,464 splice-site SNVs.
+- 36 deleteriousness prediction algorithms, including SIFT, SIFT4G, PROVEAN, PolyPhen2-HDIV,
+  PolyPhen2-HVAR, MutationTaster2021, MutationAssessor, FATHMM-XF coding, CADD, VEST4, DANN,
+  MetaSVM, MetaLR, MetaRNN, Eigen, Eigen-PC, M-CAP, REVEL, MutPred2, MVP, gMVP, MPC, PrimateAI,
+  DEOGEN2, ALoFT, BayesDel, ClinPred, LIST-S2, VARITY, ESM1b, AlphaMissense, PHACTboost,
+  MutFormer, MutScore, MisFit, and popEVE.
+- Conservation scores: PhyloP, phastCons, GERP++, GERP_92_mammals, and bStatistic.
+- Population frequencies: 1000 Genomes, gnomAD v4.1, gnomAD v2.1.1, TOPMed, All of Us, RGC
+  Million Exome, and ALFA.
+- Gene-level annotations: HGNC IDs, GenCC, OMIM, Orphanet, HPO, GWAS Catalog, ClinGen Dosage
+  Sensitivity, Human Protein Atlas, UniProt, Gene Ontology, IntAct, LOEUF/MOEUF from gnomAD 4.1,
+  ConsensusPathDB, KEGG, MGI, and ZFIN.
+
+**License:** confirm branch/license before production download. Historically dbNSFP has had
+academic and commercial branches; use the branch permitted for the deployment.
 
 **Data files** (download to `/mnt/sdb/reference/dbnsfp/`):
 ```
-dbNSFP4.8_variant.chr1.gz
-dbNSFP4.8_variant.chr1.gz.tbi
+dbNSFP5.3.1_variant.chr1.gz
+dbNSFP5.3.1_variant.chr1.gz.tbi
 ... (one file per chromosome)
 ```
-Download from: `https://sites.google.com/site/jpopgen/dbNSFP` (requires registration)
+Download from: `https://www.dbnsfp.org/download` (requires registration).
 
 **Integration — Option A: VEP plugin (recommended)**
 
 ```
-"--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP4.8_variant.chr%s.gz,REVEL_score,SIFT_score,Polyphen2_HDIV_score,MetaRNN_score,ClinPred_score"
+"--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP5.3.1_variant.chr%s.gz,<allowlisted_fields>"
 ```
 
 **Integration — Option B: Hail Table join**
@@ -146,22 +133,30 @@ Download from: `https://sites.google.com/site/jpopgen/dbNSFP` (requires registra
 Load the dbNSFP flat files as a Hail Table and join on `locus` + `alleles`. More explicit and
 easier to update independently of VEP, but requires an extra pipeline step.
 
-**Fields to extract:**
+**Initial fields to extract/export:**
 
 | dbNSFP field | Meaning | Threshold |
 |---|---|---|
+| `CADD_phred` / branch-specific CADD PHRED field | CADD score from dbNSFP | ≥20 = top 1% most deleterious |
 | `REVEL_score` | Rare variant pathogenicity ensemble | ≥0.5 suggestive; ≥0.75 strong |
 | `SIFT_score` | Sequence-based tolerance | <0.05 = damaging |
 | `Polyphen2_HDIV_score` | Structure-based pathogenicity | >0.908 = probably damaging |
 | `MetaRNN_score` | Deep learning ensemble | ≥0.5 = damaging |
 | `ClinPred_score` | Trained on ClinVar P/LP variants | >0.5 = likely pathogenic |
+| `AlphaMissense_score` / prediction | Deep learning missense pathogenicity | use dbNSFP README thresholds |
+| `gnomAD4` / `gnomAD2.1.1` population AF fields | population context | use exact fields from README |
+| `gnomAD_LOEUF` / `gnomAD_MOEUF` gene constraint | gene-level constraint | lower LOEUF = stronger LoF constraint |
 
-> **Status:** integration method not yet decided (VEP plugin vs. Hail join). Data files not yet
-> downloaded.
+Keep the MatrixTable schema flexible enough to retain additional dbNSFP fields that are useful for
+internal interpretation. The public Elasticsearch export should stay allowlisted and may expose a
+smaller subset.
+
+> **Status:** standalone CADD download/plugin is no longer planned. dbNSFP integration method is
+> still to be implemented (VEP plugin vs. Hail join). Data files are not yet downloaded.
 
 ---
 
-### 6. ClinVar — clinical significance (decided: local VCF join)
+### 5. ClinVar — clinical significance (decided: local VCF join)
 
 | Field | Notes |
 |---|---|
@@ -183,7 +178,7 @@ Update cadence: download a fresh release every 3–6 months from
 
 ---
 
-### 7. gnomAD v2.1.1 exomes (decided: local Hail Table)
+### 6. gnomAD v2.1.1 exomes (decided: local Hail Table)
 
 | Field | gnomAD HT field | Notes |
 |---|---|---|
@@ -202,7 +197,7 @@ Reference genome GRCh37 matches the current pipeline.
 
 ---
 
-### 8. Clinical metadata — sample-level, from internal GE server
+### 7. Clinical metadata — sample-level, from internal GE server
 
 These annotate **columns** (samples), not rows (variants). Joined by `sample_id`.
 
@@ -245,8 +240,7 @@ These annotate **columns** (samples), not rows (variants). Joined by `sample_id`
 | VCF fields | ready | no config needed |
 | Cohort frequencies | ready | `hl.variant_qc()` |
 | VEP — local `hl.vep()` | ready | paths confirmed on VM |
-| CADD 1.6 | plugin ready, **data needed** | download v1.6 TSV to `/mnt/sdb/reference/cadd_v1.6/` |
-| dbNSFP | **TODO** | decide VEP plugin vs Hail join; download data |
+| dbNSFP v5.3.1 | **TODO** | use as predictor source including CADD; decide VEP plugin vs Hail join; download data |
 | ClinVar | data on VM, **move needed** | `mv Plugins/clinvar.vcf.gz* /mnt/sdb/reference/clinvar/` |
 | gnomAD v2.1.1 | data on VM, **move needed** | `mv Plugins/gnomad.* /mnt/sdb/reference/gnomad/` |
 | Sample metadata | **schema updated** | update CSV files with new field names |

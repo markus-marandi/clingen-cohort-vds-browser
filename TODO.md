@@ -27,6 +27,8 @@ Top-level roadmap for agents. Keep detailed work items in scoped `TODO.md` files
 - [ ] Make metadata loading compatible with one sample having multiple panels.
 - [ ] Add or document a small fixture path for local Hail smoke tests.
 - [ ] Define gene-level frequency aggregation from variant-level genotype statistics.
+- [ ] Migrate annotation implementation from standalone CADD plugin config/parsing to dbNSFP v5.3.1
+      fields, keeping CADD only as a dbNSFP-derived score.
 - [ ] Track long-running production paths and machine-specific defaults outside committed docs.
 
 See `docs/pipeline/TODO.md` for pipeline-specific details.
@@ -43,6 +45,9 @@ See `browser/TODO.md` for browser-specific details.
 ## Deployment
 
 - [ ] Define server paths for VDS, MatrixTable, annotations, plugins, and Elasticsearch storage.
+- [ ] Define the two-VM production split: internal patient-linked VM and public/sanitized browser VM.
+- [ ] Define public export allowlist, index name, one-way transfer process, and release checklist.
+- [ ] Decide privacy threshold behavior for rare variants and low aggregate counts in the public database.
 - [ ] Document resource sizing for 2000 WES/WGS samples.
 - [ ] Define refresh policy for new samples and metadata.
 - [ ] Keep credentials, private URLs, and PHI out of tracked docs.

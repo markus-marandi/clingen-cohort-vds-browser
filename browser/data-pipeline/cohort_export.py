@@ -2,7 +2,7 @@
 
 Two modes:
   --mt-path   read a pre-annotated Hail MatrixTable (from annotate_cohort.py).
-              exports all 35 schema fields including VEP, CADD, ClinVar, gnomAD.
+              exports schema fields including VEP, dbNSFP-derived CADD, ClinVar, gnomAD.
   --vds-path  fallback: read a raw VDS and compute basic variant stats only.
               exports: chrom, pos, ref, alt, ac, an, af, n_hom, filters.
 
@@ -78,7 +78,7 @@ INDEX_MAPPING = {
             'p_nomen':      {'type': 'keyword'},
             'transcript':   {'type': 'keyword'},
 
-            # ── CADD ─────────────────────────────────────────────────────
+            # ── dbNSFP-derived CADD ──────────────────────────────────────
             'cadd_score':   {'type': 'float'},
 
             # ── ClinVar ──────────────────────────────────────────────────

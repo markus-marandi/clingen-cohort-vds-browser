@@ -1,17 +1,22 @@
 # Deployment Guide — Cohort gnomAD Browser
 
-This document explains how to bring the cohort browser up on `oligo-VM` and access it from your
-laptop over SSH. No firewall changes are needed.
+This document explains how to bring the current local/internal cohort browser up on `oligo-VM` and
+access it from your laptop over SSH. No firewall changes are needed.
+
+Production should not expose this patient-linked VM publicly. The public/browser VM should be a
+separate machine populated only with sanitized variant-level Elasticsearch documents generated from
+an explicit public export allowlist.
 
 ---
 
 ## What runs where
 
-The VM is entirely self-contained. All data and services live on `/mnt/sdb`.
+For this internal deployment, the VM is entirely self-contained. All data and services live on
+`/mnt/sdb`.
 
 | Service | Port | Purpose |
 |---|---|---|
-| Elasticsearch 8.13.4 | 9200 | Stores and serves the 150 k variant index (`cohort_variants`) |
+| Elasticsearch 8.13.4 | 9200 | Stores and serves the local/demo variant index (`cohort_variants`) |
 | Redis 7 (Podman) | 6379 | GraphQL API rate-limiter and response cache |
 | GraphQL API (Node/pnpm) | 8000 | Translates browser queries into ES searches |
 | Browser UI (webpack dev) | **8008** | React frontend served by `webpack serve` |
@@ -153,13 +158,15 @@ Browser:  200
 
 ## Re-populating the Elasticsearch index
 
-The `cohort_variants` index is persisted on disk at `/mnt/sdb/tmp/es-data` and survives reboots.
+The local/demo `cohort_variants` index is persisted on disk at `/mnt/sdb/tmp/es-data` and survives
+reboots.
 You only need to re-run the export if:
 
 - the index is empty / missing after a fresh ES data directory, or
 - the annotated MatrixTable has been updated with new samples or annotations.
 
-**Full export from annotated MT (preferred — includes VEP, CADD, ClinVar, gnomAD):**
+**Full export from annotated MT (preferred — includes VEP, dbNSFP-derived predictor fields,
+ClinVar, gnomAD):**
 
 ```bash
 /mnt/sdb/venvs/hail-39/bin/python \
@@ -169,7 +176,7 @@ You only need to re-run the export if:
   --index cohort_variants
 ```
 
-**Fallback — basic stats only from VDS (no VEP/CADD):**
+**Fallback — basic stats only from VDS (no VEP/dbNSFP):**
 
 ```bash
 /mnt/sdb/venvs/hail-39/bin/python \
