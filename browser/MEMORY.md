@@ -7,7 +7,10 @@ Scoped memory for the patched gnomAD browser layer.
 - Dataset key: `cohort`
 - Display label: `Cohort`
 - Reference genome: `GRCh37`
-- Elasticsearch index: `cohort_variants`
+- Current demo Elasticsearch index: `cohort_variants`
+- Production split: `cohort_variants_internal` or equivalent stays on the internal patient-linked
+  VM; `cohort_variants_public` or equivalent lives on the separate public/browser VM and contains
+  sanitized variant-level documents only.
 
 ## Local Services
 
@@ -51,7 +54,13 @@ Annotation fields:
 - `cdna` (source VEP field: `HGVS_c`)
 - `p_nomen` (source VEP field: `HGVS_p`)
 - `transcript`
-- `cadd_score`
+- `cadd_score` (source: dbNSFP CADD PHRED field)
+- `revel_score`
+- `sift_score`
+- `polyphen_score`
+- `metarnn_score`
+- `clinpred_score`
+- `alphamissense_score`
 - `clinvar_sig`
 - `clinvar_clnrevstat`
 - `gnomad_af`
@@ -65,9 +74,11 @@ Annotation fields:
   overlapping cohort variants.
 - Autocomplete searches variant ID prefixes and exact rsID terms.
 - GraphQL variant formatting prefers annotated MatrixTable fields and falls back to VDS-only fields.
+- Public GraphQL/browser responses must be backed by the sanitized public index only.
 
 ## Known Gaps
 
 - Gene-level frequency summaries are not yet defined.
 - Metadata-derived filtering is not yet represented in the Elasticsearch mapping.
 - `gnomad_nonfin` source semantics must be confirmed before exposing it prominently.
+- Exact public export field allowlist, index name, and low-count privacy policy are not yet defined.

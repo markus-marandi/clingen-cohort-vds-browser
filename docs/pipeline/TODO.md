@@ -23,6 +23,10 @@ Pipeline and metadata backlog.
 
 - [ ] Keep all production paths configurable with CLI flags.
 - [ ] Decide whether local demo starts from tiny GVCF, tiny VCF, or a generated MatrixTable.
+- [ ] Define internal MatrixTable outputs versus public sanitized export outputs.
+- [ ] Add a schema/field check that blocks public exports containing `sample_id`, patient IDs,
+      column metadata, per-sample genotypes, report flags, dates, HPO assignments, run IDs, or care
+      sites.
 - [ ] Add smoke checks for manifest resume behavior if ingest logic changes.
 - [ ] Document expected resource ranges for 2000 WES/WGS samples.
 
@@ -30,6 +34,9 @@ Pipeline and metadata backlog.
 
 - [ ] Confirm production VEP binary, cache path, and plugin paths.
 - [ ] Confirm gnomAD v2.1.1 exome source path and `AF_nfe` semantics.
-- [ ] Confirm CADD source and whether the UI should expose it in v1.
+- [ ] Define dbNSFP v5.3.1 field allowlist, including CADD, REVEL, SIFT, PolyPhen2, MetaRNN,
+      ClinPred, AlphaMissense, selected population AF, and gene constraint fields.
+- [ ] Replace the current standalone CADD VEP config/parsing with dbNSFP-derived fields once the
+      dbNSFP field allowlist and file branch are confirmed.
 - [ ] Confirm ClinVar snapshot/versioning and join key.
 - [ ] Define gene-level aggregation from variant rows.

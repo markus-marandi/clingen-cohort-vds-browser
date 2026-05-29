@@ -34,9 +34,15 @@ Services:
 
 ## Data Flow
 
-`browser/data-pipeline/cohort_export.py` creates or updates Elasticsearch index
-`cohort_variants`. The GraphQL API routes dataset `cohort` to
+For local/demo work, `browser/data-pipeline/cohort_export.py` creates or updates Elasticsearch
+index `cohort_variants`. The GraphQL API routes dataset `cohort` to
 `cohort-variant-queries.ts`, which reads that flat index.
+
+Production should split browser data into two tiers:
+
+- Internal patient-linked Elasticsearch on the internal VM.
+- Public/sanitized Elasticsearch on a separate public/browser VM, populated only from an explicit
+  allowlisted export.
 
 ## Checks
 
@@ -51,6 +57,8 @@ Services:
 - Keep Elasticsearch field names aligned with `cohort_export.py`.
 - Do not add internal URLs, credentials, or private sample data to browser docs or source.
 - `sample_id` values must not appear in variant query results returned to the browser UI.
+- Public browser/API responses must not include patient IDs, `sample_id`, per-sample genotypes,
+  clinical metadata, dates, HPO assignments, report flags, run IDs, care sites, or internal paths.
 - Do not expose internal file paths (VDS, MT, reference dirs) in GraphQL errors or API responses.
 
 ## VDS and Binary Data Rules

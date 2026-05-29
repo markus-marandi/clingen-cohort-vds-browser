@@ -8,6 +8,11 @@ Scoped memory for Hail, VDS, MatrixTable, metadata, and cohort frequency work.
 - Hail VDS stores genotype data across incremental cohort loads.
 - Annotated MatrixTable stores row annotations, column metadata, and fields needed for export.
 - Elasticsearch receives flattened variant documents from MatrixTable or VDS fallback export.
+- Production output splits into two database tiers: internal patient-linked outputs on the internal
+  VM, and a public/sanitized variant-only export for a separate browser VM.
+- Public exports must be generated from an explicit field allowlist and must never include
+  `sample_id`, patient IDs, column metadata, per-sample genotype entries, dates, HPO assignments,
+  report flags, run IDs, care sites, VDS/MT paths, or raw metadata tables.
 
 ## Current Scripts
 
@@ -64,8 +69,9 @@ HPO data from two sources joined by `HPO_ID`:
 ## Annotation Decisions
 
 - GRCh37/hg19, VEP 108, gnomAD v2.1.1 exomes.
-- Annotation sources decided: VEP + CADD 1.6 (VEP plugin CADD.pm) + dbNSFP 4.x + ClinVar
-  (local VCF join) + gnomAD v2.1.1 (local HT join).
-- CADD 1.6 TSV data files still need to be downloaded to `/mnt/sdb/reference/cadd_v1.6/`.
+- Annotation sources decided: VEP + dbNSFP v5.3.1 for functional predictors including CADD +
+  ClinVar (local VCF join) + gnomAD v2.1.1 (local HT join).
+- Standalone CADD plugin/data download is no longer planned; use dbNSFP CADD fields instead.
 - dbNSFP integration method pending (VEP plugin vs. Hail join); data files not yet downloaded.
+- dbNSFP field allowlist still needs to be defined for MatrixTable, internal ES, public ES, and UI.
 - See `annotation_sources.md` for per-field paths and configuration details.

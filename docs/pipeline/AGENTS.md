@@ -10,6 +10,12 @@ VDS is the storage layer. MatrixTable is the annotation and export layer.
 raw GVCFs -> filtered GVCFs -> VDS -> dense MatrixTable -> annotated MatrixTable
 ```
 
+Production exports split into two database tiers:
+
+- Internal patient-linked outputs stay on the internal VM.
+- Public/sanitized variant-only outputs go to a separate public/browser VM through an explicit
+  allowlisted export.
+
 Main scripts:
 
 - `parallel_ingest_cohort.py`: GVCF filtering and incremental VDS combine.
@@ -35,6 +41,8 @@ Build toward a tiny local path that can run before server deployment:
 - Treat multiple panel rows per sample as valid.
 - Do not collapse panels into comma-separated strings unless an export boundary requires it.
 - Keep HPO modeling separate until its cardinality and versioning are confirmed.
+- Public exports must not include patient IDs, `sample_id`, column metadata, per-sample genotypes,
+  report flags, dates, HPO assignments, run IDs, care sites, or internal paths.
 
 ## Checks
 

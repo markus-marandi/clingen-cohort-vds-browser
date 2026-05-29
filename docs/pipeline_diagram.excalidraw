@@ -256,11 +256,11 @@
       "roundness": null, "seed": 1901, "version": 1, "versionNonce": 1901,
       "isDeleted": false, "boundElements": null, "updated": 1716900000000,
       "link": null, "locked": false,
-      "text": "Annotation Sources\n\nVEP (HGVS, consequence, impact)  ·  CADD 1.6 (PHRED)\ndbNSFP 4.x (REVEL, SIFT, PolyPhen2, MetaRNN)\nClinVar VCF  ·  gnomAD v2.1.1 exomes HT\nSample metadata CSV  ·  Cohort AF via variant_qc()",
+      "text": "Annotation Sources\n\nVEP (HGVS, consequence, impact)  ·  dbNSFP v5.3.1\nCADD, REVEL, SIFT, PolyPhen2, MetaRNN, ClinPred, AlphaMissense\nClinVar VCF  ·  gnomAD v2.1.1 exomes HT\nSample metadata CSV  ·  Cohort AF via variant_qc()",
       "fontSize": 13, "fontFamily": 1,
       "textAlign": "center", "verticalAlign": "middle",
       "containerId": null,
-      "originalText": "Annotation Sources\n\nVEP (HGVS, consequence, impact)  ·  CADD 1.6 (PHRED)\ndbNSFP 4.x (REVEL, SIFT, PolyPhen2, MetaRNN)\nClinVar VCF  ·  gnomAD v2.1.1 exomes HT\nSample metadata CSV  ·  Cohort AF via variant_qc()",
+      "originalText": "Annotation Sources\n\nVEP (HGVS, consequence, impact)  ·  dbNSFP v5.3.1\nCADD, REVEL, SIFT, PolyPhen2, MetaRNN, ClinPred, AlphaMissense\nClinVar VCF  ·  gnomAD v2.1.1 exomes HT\nSample metadata CSV  ·  Cohort AF via variant_qc()",
       "lineHeight": 1.35, "autoResize": false
     },
     {
