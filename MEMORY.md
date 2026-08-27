@@ -76,6 +76,7 @@ Current test panel CSV fields:
 
 - `docs/ARCHITECTURE.md`: full data model, annotation strategy, deployment and security spec.
 - `docs/VM_STRUCTURE.md`: canonical VM directory layout and migration steps.
+- `docs/BROWSER_USE_CASES.md`: six target browser query scenarios with ES queries and gap analysis.
 - `annotation_sources.md`: per-field source reference with paths and integration details.
 
 ## Open Questions

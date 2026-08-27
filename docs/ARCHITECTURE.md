@@ -55,6 +55,10 @@ kept internal-only.
 
 ## Data Model
 
+This section is the canonical ERD. Field names here are authoritative; where the code
+still uses an older name, the mapping table at the end of this section records the delta
+and the issue that closes it.
+
 ### VEP annotation — row-level on MatrixTable
 
 | Field | Source | Notes |
@@ -80,7 +84,12 @@ kept internal-only.
 | `gnomad_af` | gnomAD v2.1.1 exomes local HT | `AF` (all populations) |
 | `gnomad_nonfin` | gnomAD v2.1.1 exomes local HT | `AF_nfe` (Non-Finnish European) |
 
-### Cohort frequency — from `hl.variant_qc()`
+The ERD names only `cadd_score`, `revel_score` and `sift_score`. The rows above them —
+polyphen, metarnn, clinpred, alphamissense, popmax AF, LOEUF, MOEUF — are produced by the
+current dbNSFP pass and kept here as a documented superset pending OLI-3. Whatever that
+decision lands on governs the ES mapping and the GraphQL exposure, not this table alone.
+
+### Variant local frequency — from `hl.variant_qc()`
 
 | Field | Hail expression |
 |---|---|
@@ -151,23 +160,53 @@ appears in a signed-out clinical report.
 | `sample_id` | |
 | `panel` | ordered gene panel name (e.g. ANEEMIA, SKIN) |
 
-One sample may appear on multiple rows (one per ordered panel).
+The schematic draws this wide (`Panel1`, `Panel2`, `Panel3`). Stored long: one row per
+ordered panel, indexed as a `panels` keyword array on `cohort_samples`. A sample with no
+ordered panel has an empty array, not a missing field.
 
 ### HPO assignments — one-to-many (WGS samples)
 
 | Field | Notes |
 |---|---|
 | `sample_id` | |
-| `HPO_ID` | e.g. HP:0001915 |
+| `hpo_id` | e.g. HP:0001915 |
 
-### HPO lookup table — from HPO release file
+Drawn wide in the schematic (`hpo_id1`, `hpo_id2`); stored long and indexed as an
+`hpo_ids` keyword array on `cohort_samples`, same as panels.
+
+### HPO terms — lookup table from the HPO release file
 
 | Field | Notes |
 |---|---|
-| `HPO_ID` | join key |
-| `HPO_termin` | human-readable label (e.g. Aplastic anemia) |
-| `HPO_version` | release version (e.g. v01-2024) |
-| `date_valid_from` | ISO date when this version took effect |
+| `hpo_id` | join key |
+| `hpo_term` | human-readable label (e.g. Aplastic anemia) |
+| `hpo_version` | release version (e.g. v01-2024) |
+| `valid_from` | ISO date when this version took effect |
+
+The label lives here, not on the sample. A term rename is a new row in this table, not a
+re-annotation of every sample that carries the ID.
+
+### Schematic vs. implementation
+
+Deltas between this ERD and the code as of 2026-08-27. Everything not listed is aligned.
+
+| ERD field / entity | Current code | Where | Issue |
+|---|---|---|---|
+| `HGVS_g`, `HGVS_c`, `HGVS_p` | `gdna`, `cdna`, `p_nomen` | `cohort_export.py`, `cohort-variant-queries.ts` | OLI-4 |
+| `clinvar_condition` | absent — only CLNSIG + CLNREVSTAT extracted | `annotate_cohort.py` | OLI-5 |
+| `clinvar_review_status` | `clinvar_clnrevstat` | `annotate_cohort.py`, `cohort_export.py` | OLI-6 |
+| Procedure (`test`, `instrument`, `ref_genome`) | `test`/`instrument` ride along in the metadata CSV; no `ref_genome` | metadata loader | OLI-7 |
+| `ref_genome` per procedure | hardcoded `reference_genome: 'GRCh37'` | `cohort-variant-queries.ts:29` | OLI-8 |
+| `sex_chr`, `date_seq`, `run_id` | `chromosomal_sex`; no `date_seq`, no `run_id` | `docs/SAMPLE_VARIANT_INDEX.md`, metadata loader | OLI-9 |
+| In Report as its own table | modelled only as an `in_report` column | — | OLI-10 |
+| Panels 1..N | singular `panel` column | `annotate_cohort.py` | OLI-13 |
+| HPO terms table (`hpo_version`, `valid_from`) | no version, no validity date | `_load_hpo_ht` | OLI-14 |
+| `hpo_term` on the lookup only | `hpo_terms` denormalized onto every sample | `annotate_cohort.py` | OLI-15 |
+| `var%`, `in_report` on genomic data | absent from the `cohort_sample_variants` design | `docs/SAMPLE_VARIANT_INDEX.md` | OLI-18 |
+| VEP predictors: cadd/revel/sift only | seven further predictors + constraint scores | `cohort_export.py` | OLI-3 |
+
+Two naming conventions differ deliberately: the ERD's `GQ` and `var%` are indexed as `gq`
+and `var_pct`, because `%` is not usable in an Elasticsearch field name.
 
 ---
 
@@ -345,8 +384,10 @@ See `browser/TODO.md` for the outstanding browser stack tasks.
 
 - Public export profile: exact allowlisted fields, index name, transfer method, and release checklist
 - Public privacy thresholds for small cohort counts and rare variants
-- dbNSFP integration method: VEP plugin (single VEP pass) vs. standalone Hail Table join
-- Exact dbNSFP v5.3.1 field allowlist for MatrixTable, internal ES, and public ES export
+- ~~dbNSFP integration method~~: resolved — VEP plugin (single VEP pass), wired in `vep_settings.json`
+- dbNSFP v5.3.1 field allowlist: variant-level predictors implemented; still confirm the exact
+  popmax-AF column (`dbnsfp_popmax_af`) and gene-constraint columns (`LOEUF`/`MOEUF`) against the
+  v5.3.1 README, and decide the smaller public-export subset
 - TLS certificate source: internal CA vs. self-signed
 - Whether `sex_chr` inference runs inside `annotate_cohort.py` or as a pre-processing step
 - HPO filter UI exposure: first demo or later phase

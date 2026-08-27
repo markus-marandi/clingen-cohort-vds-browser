@@ -19,7 +19,9 @@ Top-level roadmap for agents. Keep detailed work items in scoped `TODO.md` files
 - [ ] Split social self-defined sex and chromosomal sex into separate fields.
 - [ ] Normalize `date_seq` from test CSV format into a stable date representation.
 - [ ] Validate panels-only samples and suspicious sample IDs before annotation.
-- [ ] Decide HPO cardinality, versioning, and whether HPO filters are in v1.
+- [ ] Decide HPO cardinality, versioning, and whether HPO filters are in v1. (2026-07-14: HPO is IN
+      for v1, internal only; sample-join implemented in annotate_cohort.py. Cardinality + versioning
+      of the HPO release still open.)
 
 ## Hail Pipeline
 
@@ -27,8 +29,9 @@ Top-level roadmap for agents. Keep detailed work items in scoped `TODO.md` files
 - [ ] Make metadata loading compatible with one sample having multiple panels.
 - [ ] Add or document a small fixture path for local Hail smoke tests.
 - [ ] Define gene-level frequency aggregation from variant-level genotype statistics.
-- [ ] Migrate annotation implementation from standalone CADD plugin config/parsing to dbNSFP v5.3.1
-      fields, keeping CADD only as a dbNSFP-derived score.
+- [x] Migrate annotation implementation from standalone CADD plugin config/parsing to dbNSFP v5.3.1
+      fields, keeping CADD only as a dbNSFP-derived score. (code done 2026-07-14; VM data download +
+      field-name verification pending — see annotation_sources.md status block)
 - [ ] Track long-running production paths and machine-specific defaults outside committed docs.
 
 See `docs/pipeline/TODO.md` for pipeline-specific details.
@@ -39,8 +42,12 @@ See `docs/pipeline/TODO.md` for pipeline-specific details.
 - [ ] Expose cohort fields in Elasticsearch, GraphQL, and UI consistently.
 - [ ] Verify variant, region, gene, transcript, and autocomplete queries.
 - [ ] Decide how gene-level frequency summaries should appear in the browser.
+- [ ] Implement combined filter queries for the six target use cases (see `docs/BROWSER_USE_CASES.md`).
+- [~] Add `revel_score` and HPO fields to the internal ES index. (`revel_score` done 2026-07-14;
+      HPO sample-join done in annotate_cohort.py, HPO ES index lands with the sample-variant index.)
 
 See `browser/TODO.md` for browser-specific details.
+See `docs/AI_RETRIEVAL.md` for the semantic retrieval / natural-language query design.
 
 ## Deployment
 
