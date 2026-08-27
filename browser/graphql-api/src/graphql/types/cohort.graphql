@@ -17,3 +17,35 @@ type CohortSummary {
   consequence_counts: [CohortSummaryBucket!]!
   chromosome_counts: [CohortSummaryBucket!]!
 }
+
+# Combined-filter query results (UC-4/5/6). Lightweight projection, not the full Variant.
+type CohortFilteredVariant {
+  variant_id: String!
+  chrom: String
+  pos: Int
+  ref: String
+  alt: String
+  gene_symbol: String
+  consequence: String
+  impact: String
+  clinvar_sig: String
+  revel_score: Float
+  cadd_score: Float
+  ac: Int
+  an: Int
+  af: Float
+  hom_count: Int
+}
+
+# Per-gene panel summary for multi-gene queries (UC-5).
+type CohortGeneSummary {
+  gene_symbol: String!
+  variant_count: Int!
+  mean_af: Float
+  max_af: Float
+}
+
+type CohortFilteredVariantsResult {
+  variants: [CohortFilteredVariant!]!
+  gene_summaries: [CohortGeneSummary!]!
+}

@@ -71,6 +71,9 @@ const regionFilter = (chrom: string, start: number, stop: number) => [
   { range: { pos: { gte: start, lte: stop } } },
 ]
 
+// gene_symbol is a keyword field populated from VEP SYMBOL (uppercase official symbol).
+const geneSymbolFilter = (geneSymbol: string) => [{ term: { gene_symbol: geneSymbol } }]
+
 // ── count ─────────────────────────────────────────────────────────────────────
 
 const countVariantsInRegion = async (esClient: any, region: any) => {
@@ -112,10 +115,48 @@ const fetchVariantById = async (esClient: any, variantIdOrRsid: any) => {
   return formatVariant(response.body.hits.hits[0]._source)
 }
 
+// ── fetch by gene symbol (direct term query) ────────────────────────────────────
+
+// Direct gene_symbol term query (UC-2/4/5/6). More precise than region overlap:
+// returns only variants VEP annotated to this exact symbol, not every variant whose
+// position happens to fall inside the gene's coordinates. `extraFilters` lets the
+// combined-filter queries (UC-4/5/6) add clinvar_sig / consequence / revel_score etc.
+const fetchVariantsByGeneSymbol = async (
+  esClient: any,
+  geneSymbol: string,
+  extraFilters: any[] = []
+) => {
+  const response = await esClient.search({
+    index: COHORT_VARIANT_INDEX,
+    body: {
+      query: {
+        bool: {
+          filter: [...geneSymbolFilter(geneSymbol), ...extraFilters],
+        },
+      },
+      sort: [{ pos: 'asc' }],
+    },
+    size: 10000,
+  })
+
+  return response.body.hits.hits.map((h: any) => formatVariant(h._source))
+}
+
 // ── fetch by gene ─────────────────────────────────────────────────────────────
 
-// gene objects carry chrom/start/stop from the gene table; query the overlap
+// Prefer a precise gene_symbol term match. Fall back to region overlap when the gene
+// has no symbol or the symbol is not present in the index, so the gene page never
+// regresses to empty when a symbol source mismatches.
 const fetchVariantsByGene = async (esClient: any, gene: any) => {
+  const geneSymbol = gene.symbol ?? gene.gene_symbol ?? null
+
+  if (geneSymbol) {
+    const bySymbol = await fetchVariantsByGeneSymbol(esClient, geneSymbol)
+    if (bySymbol.length > 0) {
+      return bySymbol
+    }
+  }
+
   const response = await esClient.search({
     index: COHORT_VARIANT_INDEX,
     body: {
@@ -130,6 +171,115 @@ const fetchVariantsByGene = async (esClient: any, gene: any) => {
   })
 
   return response.body.hits.hits.map((h: any) => formatVariant(h._source))
+}
+
+// ── combined filter queries (UC-4/5/6) ──────────────────────────────────────────
+
+// lightweight projection for filtered-variant tables (not the full Variant type)
+const formatFilteredVariant = (source: any) => ({
+  variant_id: source.variant_id,
+  chrom: source.chrom,
+  pos: source.pos,
+  ref: source.ref,
+  alt: source.alt,
+  gene_symbol: source.gene_symbol ?? null,
+  consequence: source.consequence ?? null,
+  impact: source.impact ?? null,
+  clinvar_sig: source.clinvar_sig ?? null,
+  revel_score: source.revel_score ?? null,
+  cadd_score: source.cadd_score ?? null,
+  ac: source.ac_total ?? source.ac ?? null,
+  an: source.an_total ?? source.an ?? null,
+  af: source.af_total ?? source.af ?? null,
+  hom_count: source.hom_count ?? source.n_hom ?? null,
+})
+
+// Build the ES filter clauses shared by UC-4 (gene + clinvar), UC-5 (gene panel +
+// clinvar/revel), and UC-6 (consequence/impact + gene/region). Every argument is
+// optional; callers combine whichever filters they need.
+const buildCohortFilters = (args: any) => {
+  const filter: any[] = []
+
+  if (args.gene_symbol) {
+    filter.push({ term: { gene_symbol: args.gene_symbol } })
+  }
+  if (args.gene_symbols && args.gene_symbols.length > 0) {
+    filter.push({ terms: { gene_symbol: args.gene_symbols } })
+  }
+  if (args.clinvar_sig) {
+    // ClinVar_CLNSIG may be a multi-value string (e.g. "Pathogenic/Likely_pathogenic"),
+    // so match the requested significance as a substring rather than an exact keyword.
+    filter.push({ wildcard: { clinvar_sig: { value: `*${args.clinvar_sig}*` } } })
+  }
+  if (args.consequence) {
+    filter.push({ term: { consequence: args.consequence } })
+  }
+  if (args.impact) {
+    filter.push({ term: { impact: args.impact } })
+  }
+  if (args.revel_min !== undefined && args.revel_min !== null) {
+    filter.push({ range: { revel_score: { gte: args.revel_min } } })
+  }
+  if (args.chrom) {
+    filter.push({ term: { chrom: args.chrom } })
+  }
+  const hasStart = args.start !== undefined && args.start !== null
+  const hasStop = args.stop !== undefined && args.stop !== null
+  if (hasStart || hasStop) {
+    const range: any = {}
+    if (hasStart) range.gte = args.start
+    if (hasStop) range.lte = args.stop
+    filter.push({ range: { pos: range } })
+  }
+
+  return filter
+}
+
+const fetchCohortFilteredVariants = async (esClient: any, args: any) => {
+  const filter = buildCohortFilters(args)
+
+  if (filter.length === 0) {
+    throw new UserVisibleError('provide at least one filter')
+  }
+
+  const multiGene = Boolean(args.gene_symbols && args.gene_symbols.length > 0)
+
+  const body: any = {
+    query: { bool: { filter } },
+    sort: [{ pos: 'asc' }],
+  }
+
+  if (multiGene) {
+    // per-gene panel summary (UC-5): variant count + mean/max cohort AF per gene
+    body.aggs = {
+      by_gene: {
+        terms: { field: 'gene_symbol', size: args.gene_symbols.length },
+        aggs: {
+          mean_af: { avg: { field: 'af_total' } },
+          max_af: { max: { field: 'af_total' } },
+        },
+      },
+    }
+  }
+
+  const response = await esClient.search({
+    index: COHORT_VARIANT_INDEX,
+    body,
+    size: 10000,
+  })
+
+  const variants = response.body.hits.hits.map((h: any) => formatFilteredVariant(h._source))
+
+  const geneSummaries = multiGene
+    ? response.body.aggregations.by_gene.buckets.map((bucket: any) => ({
+        gene_symbol: bucket.key,
+        variant_count: bucket.doc_count,
+        mean_af: bucket.mean_af.value,
+        max_af: bucket.max_af.value,
+      }))
+    : []
+
+  return { variants, gene_summaries: geneSummaries }
 }
 
 // ── fetch by region ───────────────────────────────────────────────────────────
@@ -378,11 +528,13 @@ export default {
   countVariantsInRegion,
   fetchVariantById,
   fetchVariantsByGene,
+  fetchVariantsByGeneSymbol,
   fetchVariantsByRegion,
   fetchVariantsByTranscript,
   fetchMatchingVariants,
   fetchCohortSearchResults,
   fetchCohortSummary,
+  fetchCohortFilteredVariants,
 }
 
-export { fetchCohortSearchResults, fetchCohortSummary }
+export { fetchCohortSearchResults, fetchCohortSummary, fetchCohortFilteredVariants }

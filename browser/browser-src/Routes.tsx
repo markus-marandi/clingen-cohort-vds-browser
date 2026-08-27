@@ -18,6 +18,7 @@ const FederationPage = lazy(() => import('./FederationPage'))
 const HelpPage = lazy(() => import('./help/HelpPage'))
 const HelpTopicPage = lazy(() => import('./help/HelpTopicPage'))
 const HomePage = lazy(() => import('./HomePage'))
+const CohortFilterPage = lazy(() => import('./CohortFilterPage'))
 const MOUPage = lazy(() => import('./MOUPage'))
 const StatsPage = lazy(() => import('./StatsPage/StatsPage'))
 const PublicationsPage = lazy(() => import('./PublicationsPage'))
@@ -53,6 +54,8 @@ const Routes = () => {
   return (
     <Switch>
       <Route exact path="/" component={HomePage} />
+
+      <Route exact path="/filter" component={CohortFilterPage} />
 
       <Route
         exact

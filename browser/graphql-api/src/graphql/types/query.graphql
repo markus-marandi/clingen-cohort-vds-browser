@@ -26,6 +26,17 @@ type Query {
   variant_search(query: String!, dataset: DatasetId!): [VariantSearchResult!]!
   cohort_search(query: String!): [CohortSearchResult!]!
   cohort_summary: CohortSummary!
+  cohort_filtered_variants(
+    gene_symbol: String
+    gene_symbols: [String!]
+    clinvar_sig: String
+    consequence: String
+    impact: String
+    revel_min: Float
+    chrom: String
+    start: Int
+    stop: Int
+  ): CohortFilteredVariantsResult! @cost(value: 5)
 
   liftover(
     source_variant_id: String

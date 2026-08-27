@@ -6,6 +6,7 @@ import BrandMark from './Brand'
 import Searchbox from './Searchbox'
 
 const NAV_LINKS = [
+  { label: 'Filter', to: '/filter' },
   { label: 'About', to: '/about' },
   { label: 'Data', to: '/data' },
   { label: 'Publications', to: '/publications' },
@@ -127,7 +128,7 @@ const Menu = styled.ul<{ $isExpanded: boolean }>`
   @media (max-width: 1050px) {
     grid-column: 1 / -1;
     display: ${(props) => (props.$isExpanded ? 'grid' : 'none')};
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 6px;
     width: 100%;
     height: auto;
