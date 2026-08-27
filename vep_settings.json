@@ -18,12 +18,12 @@
         "--pick",
         "--canonical",
         "--use_given_ref",
-        "--plugin", "CADD,snv=/mnt/sdb/reference/cadd_v1.6/whole_genome_SNVs.tsv.gz,indels=/mnt/sdb/reference/cadd_v1.6/InDels.tsv.gz",
+        "--plugin", "dbNSFP,/mnt/sdb/reference/dbnsfp/dbNSFP5.3.1_variant.chr%s.gz,CADD_phred,REVEL_score,SIFT_score,Polyphen2_HDIV_score,MetaRNN_score,ClinPred_score,AlphaMissense_score,gnomAD_genomes_AF,LOEUF,MOEUF",
         "--custom", "/mnt/sdb/reference/clinvar/clinvar.vcf.gz,ClinVar,vcf,exact,0,CLNSIG,CLNREVSTAT",
         "-o", "STDOUT"
     ],
     "env": {
         "PERL5LIB": "/mnt/sdb/projects/ensembl-vep/Plugins"
     },
-    "vep_json_schema": "Struct{input:String,most_severe_consequence:String,transcript_consequences:Array[Struct{consequence_terms:Array[String],impact:String,gene_symbol:String,hgvsg:String,hgvsc:String,hgvsp:String,transcript_id:String,cadd_phred:Float64,cadd_raw_rankscore:Float64,canonical:Int32}],intergenic_consequences:Array[Struct{consequence_terms:Array[String],impact:String}],custom_annotations:Struct{ClinVar:Array[Struct{allele:String,fields:Struct{CLNSIG:String,CLNREVSTAT:String}}]}}"
+    "vep_json_schema": "Struct{input:String,most_severe_consequence:String,transcript_consequences:Array[Struct{consequence_terms:Array[String],impact:String,gene_symbol:String,hgvsg:String,hgvsc:String,hgvsp:String,transcript_id:String,canonical:Int32,CADD_phred:String,REVEL_score:String,SIFT_score:String,Polyphen2_HDIV_score:String,MetaRNN_score:String,ClinPred_score:String,AlphaMissense_score:String,gnomAD_genomes_AF:String,LOEUF:String,MOEUF:String}],intergenic_consequences:Array[Struct{consequence_terms:Array[String],impact:String}],custom_annotations:Struct{ClinVar:Array[Struct{allele:String,fields:Struct{CLNSIG:String,CLNREVSTAT:String}}]}}"
 }

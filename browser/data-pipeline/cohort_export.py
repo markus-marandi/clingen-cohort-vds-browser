@@ -2,7 +2,7 @@
 
 Two modes:
   --mt-path   read a pre-annotated Hail MatrixTable (from annotate_cohort.py).
-              exports schema fields including VEP, dbNSFP-derived CADD, ClinVar, gnomAD.
+              exports schema fields including VEP, dbNSFP predictors, ClinVar, gnomAD.
   --vds-path  fallback: read a raw VDS and compute basic variant stats only.
               exports: chrom, pos, ref, alt, ac, an, af, n_hom, filters.
 
@@ -64,6 +64,8 @@ INDEX_MAPPING = {
             'hom_count':    {'type': 'integer'},
 
             # ── cohort frequencies (VDS-only fallback: legacy names) ───────
+            # kept intentionally (decision 2026-07-14): populated only by the
+            # VDS-only export path; the GraphQL layer coalesces *_total over these.
             'ac':           {'type': 'integer'},
             'an':           {'type': 'integer'},
             'af':           {'type': 'float'},
@@ -78,8 +80,17 @@ INDEX_MAPPING = {
             'p_nomen':      {'type': 'keyword'},
             'transcript':   {'type': 'keyword'},
 
-            # ── dbNSFP-derived CADD ──────────────────────────────────────
-            'cadd_score':   {'type': 'float'},
+            # ── dbNSFP-derived functional predictors ─────────────────────
+            'cadd_score':          {'type': 'float'},
+            'revel_score':         {'type': 'float'},
+            'sift_score':          {'type': 'float'},
+            'polyphen_score':      {'type': 'float'},
+            'metarnn_score':       {'type': 'float'},
+            'clinpred_score':      {'type': 'float'},
+            'alphamissense_score': {'type': 'float'},
+            'dbnsfp_popmax_af':    {'type': 'float'},
+            'gnomad_loeuf':        {'type': 'float'},
+            'gnomad_moeuf':        {'type': 'float'},
 
             # ── ClinVar ──────────────────────────────────────────────────
             'clinvar_sig':          {'type': 'keyword'},
@@ -264,7 +275,16 @@ def export_mt_to_es(
         cdna=ht.vep.HGVSc,
         p_nomen=ht.vep.HGVSp,
         transcript=ht.vep.transcript_id,
-        cadd_score=ht.vep.CADD_PHRED,
+        cadd_score=ht.vep.cadd_score,
+        revel_score=ht.vep.revel_score,
+        sift_score=ht.vep.sift_score,
+        polyphen_score=ht.vep.polyphen_score,
+        metarnn_score=ht.vep.metarnn_score,
+        clinpred_score=ht.vep.clinpred_score,
+        alphamissense_score=ht.vep.alphamissense_score,
+        dbnsfp_popmax_af=ht.vep.dbnsfp_popmax_af,
+        gnomad_loeuf=ht.vep.gnomad_loeuf,
+        gnomad_moeuf=ht.vep.gnomad_moeuf,
         clinvar_sig=ht.vep.ClinVar_CLNSIG,
         clinvar_clnrevstat=ht.vep.ClinVar_CLNREVSTAT,
         # gnomAD
@@ -296,6 +316,15 @@ def export_mt_to_es(
             'p_nomen':              row.p_nomen,
             'transcript':           row.transcript,
             'cadd_score':           float(row.cadd_score) if row.cadd_score is not None else None,
+            'revel_score':          float(row.revel_score) if row.revel_score is not None else None,
+            'sift_score':           float(row.sift_score) if row.sift_score is not None else None,
+            'polyphen_score':       float(row.polyphen_score) if row.polyphen_score is not None else None,
+            'metarnn_score':        float(row.metarnn_score) if row.metarnn_score is not None else None,
+            'clinpred_score':       float(row.clinpred_score) if row.clinpred_score is not None else None,
+            'alphamissense_score':  float(row.alphamissense_score) if row.alphamissense_score is not None else None,
+            'dbnsfp_popmax_af':     float(row.dbnsfp_popmax_af) if row.dbnsfp_popmax_af is not None else None,
+            'gnomad_loeuf':         float(row.gnomad_loeuf) if row.gnomad_loeuf is not None else None,
+            'gnomad_moeuf':         float(row.gnomad_moeuf) if row.gnomad_moeuf is not None else None,
             'clinvar_sig':          row.clinvar_sig,
             'clinvar_clnrevstat':   row.clinvar_clnrevstat,
             'gnomad_af':            float(row.gnomad_af) if row.gnomad_af is not None else None,

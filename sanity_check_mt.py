@@ -64,15 +64,17 @@ print(f'  Total hom-alt calls      : {qc.n_hom:,}')
 # ── 4. VEP fill rate ───────────────────────────────────────────────────────────
 print(f'\n=== VEP annotation ===')
 # vep struct is flat: Consequence, IMPACT, SYMBOL, HGVSg/c/p, transcript_id,
-# CADD_PHRED, CADD_RAW, ClinVar_CLNSIG, ClinVar_CLNREVSTAT
+# dbNSFP predictors (cadd_score, revel_score, ...), ClinVar_CLNSIG, ClinVar_CLNREVSTAT
 vep = mt.aggregate_rows(hl.struct(
     has_consequence = hl.agg.count_where(hl.is_defined(mt.vep.Consequence)),
     has_symbol      = hl.agg.count_where(hl.is_defined(mt.vep.SYMBOL)),
-    has_cadd        = hl.agg.count_where(hl.is_defined(mt.vep.CADD_PHRED)),
+    has_cadd        = hl.agg.count_where(hl.is_defined(mt.vep.cadd_score)),
+    has_revel       = hl.agg.count_where(hl.is_defined(mt.vep.revel_score)),
 ))
 print(f'  Variants with Consequence : {vep.has_consequence:,} / {n_variants:,}  ({100*vep.has_consequence/n_variants:.1f}%)')
 print(f'  Variants with SYMBOL      : {vep.has_symbol:,} / {n_variants:,}  ({100*vep.has_symbol/n_variants:.1f}%)')
-print(f'  Variants with CADD_PHRED  : {vep.has_cadd:,} / {n_variants:,}  ({100*vep.has_cadd/n_variants:.1f}%)')
+print(f'  Variants with cadd_score  : {vep.has_cadd:,} / {n_variants:,}  ({100*vep.has_cadd/n_variants:.1f}%)')
+print(f'  Variants with revel_score : {vep.has_revel:,} / {n_variants:,}  ({100*vep.has_revel/n_variants:.1f}%)')
 
 # ── 5. gnomAD join ─────────────────────────────────────────────────────────────
 print(f'\n=== gnomAD join ===')

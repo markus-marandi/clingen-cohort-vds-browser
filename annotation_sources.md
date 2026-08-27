@@ -151,8 +151,22 @@ Keep the MatrixTable schema flexible enough to retain additional dbNSFP fields t
 internal interpretation. The public Elasticsearch export should stay allowlisted and may expose a
 smaller subset.
 
-> **Status:** standalone CADD download/plugin is no longer planned. dbNSFP integration method is
-> still to be implemented (VEP plugin vs. Hail join). Data files are not yet downloaded.
+> **Status:** implemented as a VEP plugin (Option A) in `vep_settings.json`; the standalone CADD
+> download/plugin is retired. `annotate_cohort.py` flattens the dbNSFP fields via the `_dbnsfp_float`
+> helper and `cohort_export.py` indexes them (`cadd_score`, `revel_score`, `sift_score`,
+> `polyphen_score`, `metarnn_score`, `clinpred_score`, `alphamissense_score`, `dbnsfp_popmax_af`,
+> `gnomad_loeuf`, `gnomad_moeuf`).
+>
+> **Not yet verified on the VM** — before the next annotation run, confirm:
+> - dbNSFP v5.3.1 data files are downloaded to `/mnt/sdb/reference/dbnsfp/` and tabix-indexed. The
+>   plugin may require a single concatenated + bgzipped file rather than the per-chromosome `chr%s`
+>   template currently in `vep_settings.json`.
+> - The exact dbNSFP column names emitted into VEP JSON match the `vep_settings.json` allowlist and
+>   `vep_json_schema`. In particular: the population-AF column mapped to `dbnsfp_popmax_af`
+>   (`gnomAD_genomes_AF` is a placeholder — replace with the true popmax/grpmax column from the
+>   v5.3.1 README) and the gene-constraint columns `LOEUF` / `MOEUF`.
+> - VEP JSON emits these plugin fields as strings (handled by `_dbnsfp_float`); adjust the schema
+>   types if any come through numeric.
 
 ---
 
@@ -240,7 +254,7 @@ These annotate **columns** (samples), not rows (variants). Joined by `sample_id`
 | VCF fields | ready | no config needed |
 | Cohort frequencies | ready | `hl.variant_qc()` |
 | VEP — local `hl.vep()` | ready | paths confirmed on VM |
-| dbNSFP v5.3.1 | **TODO** | use as predictor source including CADD; decide VEP plugin vs Hail join; download data |
+| dbNSFP v5.3.1 | code done, **data + VM verify pending** | VEP plugin wired in `vep_settings.json`; download data to `/mnt/sdb/reference/dbnsfp/` and verify field names |
 | ClinVar | data on VM, **move needed** | `mv Plugins/clinvar.vcf.gz* /mnt/sdb/reference/clinvar/` |
 | gnomAD v2.1.1 | data on VM, **move needed** | `mv Plugins/gnomad.* /mnt/sdb/reference/gnomad/` |
 | Sample metadata | **schema updated** | update CSV files with new field names |

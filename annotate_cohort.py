@@ -1,4 +1,4 @@
-"""Annotate a cohort VDS with VEP, CADD, ClinVar, gnomAD, and cohort frequencies.
+"""Annotate a cohort VDS with VEP, dbNSFP, ClinVar, gnomAD, and cohort frequencies.
 
 All variant-level annotations are written to a Hail MatrixTable that then feeds
 cohort_export.py for Elasticsearch indexing.
@@ -10,6 +10,8 @@ Usage:
         [--vep-config PATH]     # default: vep_settings.json in project root
         [--gnomad-ht PATH]      # default: Plugins/gnomad.exomes.r2.1.1.sites.ht
         [--metadata-path PATH]  # optional: CSV with sample-level annotations
+        [--hpo-path PATH]       # optional: per-sample HPO CSV (internal only)
+        [--hpo-lookup-path PATH]# optional: HPO_ID -> HPO_termin lookup CSV
         [--n-cores N]           # default: 16
         [--memory-gb N]         # default: 64
         [--overwrite]           # overwrite existing output MT
@@ -17,12 +19,16 @@ Usage:
 Annotation layers (in order):
     1. hl.variant_qc()          -> cohort AC / AN / AF / hom_count
     2. hl.vep()                 -> consequence, IMPACT, SYMBOL, HGVSg/c/p,
-                                   transcript_id, CADD_PHRED, ClinVar_CLNSIG
+                                   transcript_id, dbNSFP predictors (CADD, REVEL,
+                                   SIFT, PolyPhen2, MetaRNN, ClinPred, AlphaMissense,
+                                   popmax AF, LOEUF/MOEUF), ClinVar_CLNSIG
                                    (all driven by vep_settings.json)
     3. gnomAD HT join           -> gnomad_af, gnomad_nonfin (AF_nfe)
-    4. metadata CSV join        -> sex, age, care_site, panel, HPO_ID,
-                                   HPO_termin, health_status, test, instrument
+    4. metadata CSV join        -> sex_assigned, date_of_birth, care_site,
+                                   health_status, material, test, instrument
                                    (step skipped when --metadata-path not given)
+    4b. HPO CSV join (internal) -> hpo_ids, hpo_terms per sample
+                                   (step skipped when --hpo-path not given)
 """
 
 from __future__ import annotations
@@ -52,6 +58,33 @@ HAIL_JAR  = '/mnt/sdb/markus_files/hail/backend/hail-all-spark.jar'
 TMP_DIR   = '/mnt/sdb/tmp/annotate_temp'
 
 
+# ── dbNSFP helpers ──────────────────────────────────────────────────────────────
+
+def _dbnsfp_float(expr: hl.expr.StringExpression) -> hl.expr.Float64Expression:
+    """Parse a dbNSFP score string into a float.
+
+    dbNSFP fields arrive from the VEP plugin as strings: missing values are '.',
+    and a single field may carry several ';'-delimited transcript-specific values
+    (e.g. "0.91;.;0.88"). Take the first non-missing token and cast it to float.
+
+    args:
+        expr: a dbNSFP string field from a flattened transcript consequence.
+
+    returns:
+        Float64 expression; missing when no numeric token is present.
+    """
+    tokens = hl.if_else(
+        hl.is_defined(expr),
+        expr.split(';').filter(lambda t: (t != '.') & (t != '')),
+        hl.empty_array(hl.tstr),
+    )
+    return hl.if_else(
+        hl.len(tokens) > 0,
+        hl.float64(tokens[0]),
+        hl.missing(hl.tfloat64),
+    )
+
+
 # ── argument parsing ───────────────────────────────────────────────────────────
 
 def _parse_args() -> argparse.Namespace:
@@ -78,9 +111,24 @@ def _parse_args() -> argparse.Namespace:
         '--metadata-path', default=None,
         help=(
             'optional CSV with sample-level clinical annotations '
-            '(columns: sample_id, sex, age, care_site, panel, '
-            'HPO_ID, HPO_termin, health_status, test, instrument). '
+            '(columns: sample_id, sex_assigned, date_of_birth, care_site, '
+            'health_status, material, test, instrument). '
             'skip this flag to omit sample-level annotations.'
+        ),
+    )
+    p.add_argument(
+        '--hpo-path', default=None,
+        help=(
+            'optional CSV of HPO assignments (columns: sample_id, HPO_ID; '
+            'one row per assignment). INTERNAL ONLY — patient-linked, must not '
+            'reach the public index. skip to omit HPO annotations.'
+        ),
+    )
+    p.add_argument(
+        '--hpo-lookup-path', default=None,
+        help=(
+            'optional CSV mapping HPO_ID -> HPO_termin for human-readable term '
+            'labels. only used when --hpo-path is given.'
         ),
     )
     p.add_argument('--n-cores', type=int, default=16,
@@ -153,6 +201,47 @@ def _load_gnomad_ht(gnomad_ht_path: str) -> hl.Table:
     return hl.read_table(gnomad_ht_path)
 
 
+# ── HPO helpers ─────────────────────────────────────────────────────────────────
+
+def _load_hpo_ht(hpo_path: str, hpo_lookup_path: str | None) -> hl.Table:
+    """Build a per-sample HPO table from the HPO CSV(s).
+
+    The HPO CSV has one row per (sample_id, HPO_ID). The optional lookup CSV maps
+    HPO_ID -> HPO_termin (human-readable label). Rows are grouped to one entry per
+    sample with sorted, de-duplicated id and term arrays.
+
+    Internal use only — HPO is patient-linked and must never reach the public index.
+
+    args:
+        hpo_path: CSV with columns sample_id, HPO_ID (one row per assignment).
+        hpo_lookup_path: optional CSV with columns HPO_ID, HPO_termin.
+
+    returns:
+        Table keyed by sample_id with array<str> fields hpo_ids and hpo_terms.
+    """
+    hpo = hl.import_table(hpo_path, delimiter=',', missing='')
+
+    if hpo_lookup_path:
+        lookup = hl.import_table(
+            hpo_lookup_path, delimiter=',', key='HPO_ID', missing=''
+        )
+        hpo = hpo.annotate(HPO_termin=lookup[hpo.HPO_ID].HPO_termin)
+    else:
+        hpo = hpo.annotate(HPO_termin=hl.missing(hl.tstr))
+
+    grouped = hpo.group_by(hpo.sample_id).aggregate(
+        hpo_ids=hl.agg.collect_as_set(hpo.HPO_ID),
+        hpo_terms=hl.agg.filter(
+            hl.is_defined(hpo.HPO_termin), hl.agg.collect_as_set(hpo.HPO_termin)
+        ),
+    )
+    grouped = grouped.annotate(
+        hpo_ids=hl.sorted(hl.array(grouped.hpo_ids)),
+        hpo_terms=hl.sorted(hl.array(grouped.hpo_terms)),
+    )
+    return grouped.key_by('sample_id')
+
+
 # ── main annotation logic ──────────────────────────────────────────────────────
 
 def annotate(
@@ -161,6 +250,8 @@ def annotate(
     vep_config: str,
     gnomad_ht_path: str,
     metadata_path: str | None,
+    hpo_path: str | None,
+    hpo_lookup_path: str | None,
     overwrite: bool,
 ) -> None:
     """Run the full annotation pipeline and write the annotated MT.
@@ -172,6 +263,9 @@ def annotate(
         gnomad_ht_path (str): path to (or desired path for) gnomAD Hail Table.
         metadata_path (str | None): CSV with sample-level clinical metadata,
             or None to skip sample-level annotations.
+        hpo_path (str | None): CSV of per-sample HPO assignments (internal only),
+            or None to skip HPO annotations.
+        hpo_lookup_path (str | None): optional HPO_ID -> HPO_termin lookup CSV.
         overwrite (bool): whether to overwrite an existing output MT.
     """
     if not os.path.exists(vds_path):
@@ -194,9 +288,9 @@ def annotate(
     print('Computing cohort frequencies (variant_qc)...')
     mt = hl.variant_qc(mt)
 
-    # ── 3. VEP + CADD + ClinVar ───────────────────────────────────────────────
+    # ── 3. VEP + dbNSFP + ClinVar ─────────────────────────────────────────────
     # vep_settings.json drives: consequence, IMPACT, SYMBOL, HGVSg/c/p,
-    # transcript_id, CADD_PHRED, ClinVar_CLNSIG, ClinVar_CLNREVSTAT
+    # transcript_id, dbNSFP predictor scores, ClinVar_CLNSIG, ClinVar_CLNREVSTAT
     print('Running VEP annotation (this is the slowest step)...')
     mt = hl.vep(mt, config=vep_config)
 
@@ -234,8 +328,18 @@ def annotate(
             HGVSc=hl.or_missing(has_tc, tc.hgvsc),
             HGVSp=hl.or_missing(has_tc, tc.hgvsp),
             transcript_id=hl.or_missing(has_tc, tc.transcript_id),
-            CADD_PHRED=hl.or_missing(has_tc, tc.cadd_phred),
-            CADD_RAW=hl.or_missing(has_tc, tc.cadd_raw_rankscore),
+            # dbNSFP-derived functional predictors (v5.3.1; see annotation_sources.md).
+            # The dbNSFP VEP plugin emits these as strings, so parse via _dbnsfp_float.
+            cadd_score=hl.or_missing(has_tc, _dbnsfp_float(tc.CADD_phred)),
+            revel_score=hl.or_missing(has_tc, _dbnsfp_float(tc.REVEL_score)),
+            sift_score=hl.or_missing(has_tc, _dbnsfp_float(tc.SIFT_score)),
+            polyphen_score=hl.or_missing(has_tc, _dbnsfp_float(tc.Polyphen2_HDIV_score)),
+            metarnn_score=hl.or_missing(has_tc, _dbnsfp_float(tc.MetaRNN_score)),
+            clinpred_score=hl.or_missing(has_tc, _dbnsfp_float(tc.ClinPred_score)),
+            alphamissense_score=hl.or_missing(has_tc, _dbnsfp_float(tc.AlphaMissense_score)),
+            dbnsfp_popmax_af=hl.or_missing(has_tc, _dbnsfp_float(tc.gnomAD_genomes_AF)),
+            gnomad_loeuf=hl.or_missing(has_tc, _dbnsfp_float(tc.LOEUF)),
+            gnomad_moeuf=hl.or_missing(has_tc, _dbnsfp_float(tc.MOEUF)),
             ClinVar_CLNSIG=hl.or_missing(
                 hl.is_defined(clinvar), clinvar.fields.CLNSIG
             ),
@@ -271,6 +375,26 @@ def annotate(
         print(f'Sample-level annotations joined from: {metadata_path}')
     else:
         print('--metadata-path not provided — skipping sample-level annotations.')
+
+    # ── 5b. HPO terms (optional, INTERNAL ONLY) ───────────────────────────────
+    # HPO is patient-linked: it annotates samples (cols), not variants (rows), and
+    # must be excluded from the public/sanitized export. It surfaces to the browser
+    # through the internal sample-variant index (see docs/SAMPLE_VARIANT_INDEX.md),
+    # not through the per-variant cohort_variants index.
+    if hpo_path:
+        if not os.path.exists(hpo_path):
+            raise FileNotFoundError(f'HPO file not found: {hpo_path}')
+        if hpo_lookup_path and not os.path.exists(hpo_lookup_path):
+            raise FileNotFoundError(f'HPO lookup file not found: {hpo_lookup_path}')
+        print(f'Loading HPO assignments: {hpo_path}')
+        hpo_ht = _load_hpo_ht(hpo_path, hpo_lookup_path)
+        mt = mt.annotate_cols(
+            hpo_ids=hl.coalesce(hpo_ht[mt.s].hpo_ids, hl.empty_array(hl.tstr)),
+            hpo_terms=hl.coalesce(hpo_ht[mt.s].hpo_terms, hl.empty_array(hl.tstr)),
+        )
+        print('HPO sample annotations joined (internal only).')
+    else:
+        print('--hpo-path not provided — skipping HPO annotations.')
 
     # ── 6. write ──────────────────────────────────────────────────────────────
     print(f'Writing annotated MT to: {output_mt_path}')
@@ -313,5 +437,7 @@ if __name__ == '__main__':
         vep_config=args.vep_config,
         gnomad_ht_path=args.gnomad_ht,
         metadata_path=args.metadata_path,
+        hpo_path=args.hpo_path,
+        hpo_lookup_path=args.hpo_lookup_path,
         overwrite=args.overwrite,
     )
