@@ -132,6 +132,22 @@ until curl -s -o /dev/null -w '%{http_code}' http://localhost:8008/ | grep -q 20
 done && echo "Browser up"
 ```
 
+### Alternative: containerised stack
+
+The steps above start each service natively and are the currently verified path.
+`scripts/stack.sh` runs the same services through compose under either docker or
+podman:
+
+```bash
+cd /mnt/sdb/projects/clingen-cohort-vds-browser
+./scripts/stack.sh doctor   # host preflight only
+./scripts/stack.sh up       # compose up --build -d
+```
+
+`doctor` fails loudly if `/etc/mtab` is missing or dangling, which aborts podman
+builds. Fix once with `sudo ln -sf /proc/self/mounts /etc/mtab`. The compose
+stack publishes the browser on 3000, not 8008 — adjust the tunnel accordingly.
+
 ---
 
 ## 3. SSH tunnel (run on your laptop, keep open)
