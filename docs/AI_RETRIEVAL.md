@@ -33,7 +33,7 @@ Adding embeddings to this path buys nothing and costs recall guarantees on clini
 
 The project's actual scaling constraints for 2000 WES/WGS samples are Hail/VDS compute,
 `cohort_sample_variants` document count, and Elasticsearch heap — none of which retrieval
-addresses. Those stay tracked in `TODO.md` and `docs/SAMPLE_VARIANT_INDEX.md`.
+addresses. Those stay tracked in `docs/SAMPLE_VARIANT_INDEX.md`.
 
 **RAG earns its place only where the source is genuinely unstructured text.** Three layers
 below; layers 1 and 2 are worth building, layer 0 is the existing structured path they sit on.
@@ -358,7 +358,7 @@ memory-limit review first — restrict to variants present in the cohort, or to
 
 ## 9. Build order
 
-1. Structured filter queries for UC-1…UC-6 (`TODO.md`, `docs/BROWSER_USE_CASES.md`).
+1. Structured filter queries for UC-1…UC-6 (`docs/BROWSER_USE_CASES.md`).
    Retrieval on top of a missing query layer has nothing to ground against.
 2. Layer 1 text-to-filter with the static schema, filter preview in the UI, no vectors.
 3. `curation_text` with HPO only — smallest source, clearest win, zero PHI.

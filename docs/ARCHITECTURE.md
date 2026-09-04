@@ -352,7 +352,7 @@ nginx HTTP basic auth — `.htpasswd` file, managed manually for the small known
 - Elasticsearch `network.host: 127.0.0.1` in config
 - Healthcheck asserting Elasticsearch is not reachable from outside the Docker bridge network
 
-See `browser/TODO.md` for the outstanding browser stack tasks.
+See `docs/DEPLOYMENT.md` for the browser stack deployment steps.
 
 ---
 
