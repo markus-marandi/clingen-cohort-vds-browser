@@ -1,0 +1,14 @@
+# TUI dashboard environment. Kept separate from clingen-pipeline because current
+# Textual releases require a newer `rich` than Hail allows (see README).
+# Create with: scripts/setup_env.sh conda
+name: clingen-tui
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - textual>=0.80
+      - rich>=13.8
+      - pytest>=8

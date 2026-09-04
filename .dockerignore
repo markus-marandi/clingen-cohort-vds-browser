@@ -1,0 +1,4 @@
+# Root build context is only used for the pipeline image; the Dockerfile copies
+# nothing, so exclude everything else to keep the context transfer empty.
+*
+!Dockerfile

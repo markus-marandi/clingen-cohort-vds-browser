@@ -1,0 +1,15 @@
+# Pipeline environment: Hail + bcftools + tabix + JDK.
+# Create with: scripts/setup_env.sh conda
+name: clingen-pipeline
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python=3.11
+  - openjdk=17
+  - bcftools>=1.16
+  - htslib>=1.16
+  - pip
+  - pip:
+      - hail==0.2.135

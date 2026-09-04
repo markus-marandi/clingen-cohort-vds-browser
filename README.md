@@ -118,7 +118,35 @@ Then open `http://localhost:8008` in your browser.
 
 ## Quick Start
 
-Install prerequisites: Python 3.11+, Hail 0.2, bcftools, tabix, Docker or Podman, pnpm, and git.
+Bootstrap the pipeline environment on a VM or laptop with one script. Two runtimes are
+supported — pick whichever fits the machine:
+
+```bash
+scripts/setup_env.sh conda    # micromamba/conda envs: hail 0.2.135, bcftools, tabix, JDK 17
+scripts/setup_env.sh docker   # clingen-pipeline image (install Docker first with install-docker)
+```
+
+Helper commands:
+
+| Command | Purpose |
+|---|---|
+| `scripts/setup_env.sh install-conda` | Install micromamba to `~/.local/bin` (no root) |
+| `scripts/setup_env.sh install-docker` | Install Docker Engine on Debian/Ubuntu (sudo) |
+| `scripts/setup_env.sh verify` | Smoke-check whichever runtime is present |
+
+`conda` creates a `clingen-pipeline` environment (Hail, bcftools, tabix, JDK) plus a separate
+`clingen-tui` environment for the dashboard, keeping the `rich` version conflict between Hail and
+Textual out of the way. `docker` builds the pipeline image from `Dockerfile`; pipeline code and
+data are bind-mounted into `/work` at run time, not baked in.
+
+Run the pipeline in the container:
+
+```bash
+docker run --rm -it -v "$PWD":/work -w /work clingen-pipeline:latest \
+    python parallel_ingest_cohort.py --help
+```
+
+Install prerequisites for the browser patch layer only: Python 3.11+, Docker or Podman, pnpm, and git.
 
 Bootstrap the browser patch layer:
 
@@ -241,13 +269,10 @@ python browser/data-pipeline/cohort_export.py \
 
 ## Documentation
 
-- [`AGENTS.md`](AGENTS.md): how agents should work in this repo
-- [`MEMORY.md`](MEMORY.md): durable project decisions
-- [`TODO.md`](TODO.md): current roadmap
 - [`annotation_sources.md`](annotation_sources.md): detailed annotation source mapping
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): full data model, storage layout, security model
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): step-by-step VM setup guide
-- [`docs/pipeline/`](docs/pipeline/): pipeline-scoped guidance and TODO
+- [`docs/pipeline/`](docs/pipeline/): pipeline-scoped guidance
 
 ---
 
