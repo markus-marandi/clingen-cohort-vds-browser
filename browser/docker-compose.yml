@@ -6,6 +6,9 @@ services:
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms2g -Xmx2g
       - cluster.routing.allocation.disk.threshold_enabled=false
+      # hosts without root often have vm.max_map_count below ES's 262144 bootstrap
+      # requirement; disabling mmap makes ES fall back to niofs instead of aborting
+      - node.store.allow_mmap=false
     volumes:
       - es_data:/usr/share/elasticsearch/data
     ports:
@@ -49,9 +52,13 @@ services:
       context: .
       dockerfile: browser/Dockerfile
     environment:
-      - GNOMAD_API_URL=http://localhost:8000
+      # webpack dev server proxies /api to this target from inside the container,
+      # so it must point at the compose service, not localhost. The proxy rewrites
+      # '^/api' off the request path, so the target must carry the /api prefix.
+      - GNOMAD_API_URL=http://graphql-api:8000/api
     ports:
-      - "3000:3000"
+      # webpack dev server port is hardcoded to 8008 in webpack.config.js
+      - "8008:8008"
     depends_on:
       - graphql-api
 

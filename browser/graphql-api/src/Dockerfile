@@ -1,6 +1,8 @@
 FROM node:20-slim
 
-RUN npm install -g pnpm
+# pin pnpm 8: the repo's pnpm-lock.yaml is lockfileVersion 6.0, which pnpm 9+
+# refuses to read (ERR_PNPM_BROKEN_LOCKFILE). Matches .tool-versions (8.14.3).
+RUN npm install -g pnpm@8.14.3
 
 WORKDIR /app
 

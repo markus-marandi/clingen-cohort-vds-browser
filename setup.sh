@@ -208,6 +208,10 @@ cp "${PATCHES_DIR}/browser-src/search.ts" \
 cp "${PATCHES_DIR}/browser-src/VariantPageRouter.tsx" \
    "${GNOMAD_BROWSER_DIR}/browser/src/VariantPageRouter.tsx"
 
+# new file: cohort filter page (lazy-imported by Routes.tsx)
+cp "${PATCHES_DIR}/browser-src/CohortFilterPage.tsx" \
+   "${GNOMAD_BROWSER_DIR}/browser/src/CohortFilterPage.tsx"
+
 # new file: cohort-specific variant detail page
 mkdir -p "${GNOMAD_BROWSER_DIR}/browser/src/VariantPage"
 cp "${PATCHES_DIR}/browser-src/VariantPage/CohortVariantPage.tsx" \
