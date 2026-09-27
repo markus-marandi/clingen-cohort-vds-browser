@@ -1,0 +1,34 @@
+# Annotation image: official VEP 108 (Perl stack prebuilt for the image's
+# Ubuntu 18.04 base) + Hail 0.2.135 on Python 3.11 / OpenJDK 17 via Miniconda.
+#
+# Build with:
+#   docker build -t clingen-annotate:latest -f Dockerfile.annotate .
+#
+# VEP must run in the same container as Hail: hl.vep() shells out to the vep
+# binary on the driver. The 18.04 base is too old for openjdk-17/modern Python
+# via apt, so Python/JDK come from conda-forge while VEP keeps its prebuilt
+# system-perl toolchain untouched.
+FROM ensemblorg/ensembl-vep:release_108.2
+
+USER root
+
+# dbNSFP plugin - main branch, patched: single numeric-looking values are
+# emitted as ';'-terminated strings so VEP's JSON writer keeps them as strings
+# (Hail's strict vep_json_schema parser drops JSON numbers).
+COPY vep_plugins/dbNSFP.pm /opt/vep/src/ensembl-vep/Plugins/dbNSFP.pm
+
+# Python 3.11 + OpenJDK 17 + Hail.
+# The 18.04 base (glibc 2.27) is too old for current Miniconda (needs 2.28),
+# so Python comes from astral's python-build-standalone (glibc 2.17+) and the
+# JDK from Adoptium Temurin (built for glibc 2.17+).
+RUN curl -sSL https://github.com/astral-sh/python-build-standalone/releases/download/20240224/cpython-3.11.8+20240224-x86_64-unknown-linux-gnu-install_only.tar.gz \
+        | tar -xz -C /usr/local \
+    && curl -sSL "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jre/hotspot/normal/eclipse" \
+        | tar -xz -C /opt \
+    && mv /opt/jdk-17* /opt/jdk17
+ENV PATH=/usr/local/python/bin:/opt/jdk17/bin:$PATH
+ENV JAVA_HOME=/opt/jdk17
+RUN pip install --no-cache-dir hail==0.2.135
+
+WORKDIR /work
+CMD ["bash"]

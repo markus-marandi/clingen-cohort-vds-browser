@@ -1,4 +1,7 @@
-# Root build context is only used for the pipeline image; the Dockerfile copies
-# nothing, so exclude everything else to keep the context transfer empty.
+# Root build context is used by the pipeline and annotate images; both copy
+# almost nothing, so exclude everything else to keep the context transfer empty.
 *
 !Dockerfile
+!Dockerfile.annotate
+!vep_plugins
+!vep_plugins/dbNSFP.pm

@@ -64,8 +64,10 @@ def _dbnsfp_float(expr: hl.expr.StringExpression) -> hl.expr.Float64Expression:
     """Parse a dbNSFP score string into a float.
 
     dbNSFP fields arrive from the VEP plugin as strings: missing values are '.',
-    and a single field may carry several ';'-delimited transcript-specific values
-    (e.g. "0.91;.;0.88"). Take the first non-missing token and cast it to float.
+    and a single field may carry several transcript-specific values. dbNSFP
+    separates them with ';' but the VEP dbNSFP plugin replaces ';' with ','
+    (e.g. "0.91;.;0.88" is emitted as "0.91,.,0.88"), so both separators are
+    normalized here. Take the first non-missing token and cast it to float.
 
     args:
         expr: a dbNSFP string field from a flattened transcript consequence.
@@ -75,7 +77,7 @@ def _dbnsfp_float(expr: hl.expr.StringExpression) -> hl.expr.Float64Expression:
     """
     tokens = hl.if_else(
         hl.is_defined(expr),
-        expr.split(';').filter(lambda t: (t != '.') & (t != '')),
+        expr.replace(',', ';').split(';').filter(lambda t: (t != '.') & (t != '')),
         hl.empty_array(hl.tstr),
     )
     return hl.if_else(
@@ -129,6 +131,14 @@ def _parse_args() -> argparse.Namespace:
         help=(
             'optional CSV mapping HPO_ID -> HPO_termin for human-readable term '
             'labels. only used when --hpo-path is given.'
+        ),
+    )
+    p.add_argument(
+        '--gene-table-path', default=None,
+        help=(
+            'optional dbNSFP gene table (dbNSFP5.3_gene.gz) for gene-level '
+            'gnomAD LOEUF/MOEUF constraint, joined by gene symbol. '
+            'without it, gnomad_loeuf/gnomad_moeuf are left missing.'
         ),
     )
     p.add_argument('--n-cores', type=int, default=16,
@@ -252,7 +262,8 @@ def annotate(
     metadata_path: str | None,
     hpo_path: str | None,
     hpo_lookup_path: str | None,
-    overwrite: bool,
+    gene_table_path: str | None = None,
+    overwrite: bool = False,
 ) -> None:
     """Run the full annotation pipeline and write the annotated MT.
 
@@ -330,16 +341,19 @@ def annotate(
             transcript_id=hl.or_missing(has_tc, tc.transcript_id),
             # dbNSFP-derived functional predictors (v5.3.1; see annotation_sources.md).
             # The dbNSFP VEP plugin emits these as strings, so parse via _dbnsfp_float.
-            cadd_score=hl.or_missing(has_tc, _dbnsfp_float(tc.CADD_phred)),
-            revel_score=hl.or_missing(has_tc, _dbnsfp_float(tc.REVEL_score)),
-            sift_score=hl.or_missing(has_tc, _dbnsfp_float(tc.SIFT_score)),
-            polyphen_score=hl.or_missing(has_tc, _dbnsfp_float(tc.Polyphen2_HDIV_score)),
-            metarnn_score=hl.or_missing(has_tc, _dbnsfp_float(tc.MetaRNN_score)),
-            clinpred_score=hl.or_missing(has_tc, _dbnsfp_float(tc.ClinPred_score)),
-            alphamissense_score=hl.or_missing(has_tc, _dbnsfp_float(tc.AlphaMissense_score)),
-            dbnsfp_popmax_af=hl.or_missing(has_tc, _dbnsfp_float(tc.gnomAD_genomes_AF)),
-            gnomad_loeuf=hl.or_missing(has_tc, _dbnsfp_float(tc.LOEUF)),
-            gnomad_moeuf=hl.or_missing(has_tc, _dbnsfp_float(tc.MOEUF)),
+            cadd_score=hl.or_missing(has_tc, _dbnsfp_float(tc.cadd_phred)),
+            revel_score=hl.or_missing(has_tc, _dbnsfp_float(tc.revel_score)),
+            sift_score=hl.or_missing(has_tc, _dbnsfp_float(tc.sift_score)),
+            polyphen_score=hl.or_missing(has_tc, _dbnsfp_float(tc.polyphen2_hdiv_score)),
+            metarnn_score=hl.or_missing(has_tc, _dbnsfp_float(tc.metarnn_score)),
+            clinpred_score=hl.or_missing(has_tc, _dbnsfp_float(tc.clinpred_score)),
+            alphamissense_score=hl.or_missing(has_tc, _dbnsfp_float(tc.alphamissense_score)),
+            # dbNSFP_POPMAX_AF is the consolidated max population AF across
+            # dbNSFP sources (v5.3.1 header; replaces the gnomAD_genomes_AF
+            # placeholder - see annotation_sources.md / OLI-2). VEP emits plugin
+            # fields lowercased in JSON; the schema and these references must
+            # match (v5.3.1a verification, 2026-09-27).
+            dbnsfp_popmax_af=hl.or_missing(has_tc, _dbnsfp_float(tc.dbnsfp_popmax_af)),
             ClinVar_CLNSIG=hl.or_missing(
                 hl.is_defined(clinvar), clinvar.fields.CLNSIG
             ),
@@ -357,6 +371,43 @@ def annotate(
         gnomad_af=gnomad_ht[mt.row_key].AF,
         gnomad_nonfin=gnomad_ht[mt.row_key].AF_nfe,
     )
+
+    # ── 4b. gene-level constraint from the dbNSFP gene table ──────────────────
+    # gnomAD LOEUF/MOEUF are gene-level annotations, so they are not in the
+    # variant table and the dbNSFP VEP plugin cannot emit them. Join by gene
+    # symbol instead (dbNSFP5.3_gene.gz, columns Gene_name / gnomAD_LOEUF /
+    # gnomAD_MOEUF).
+    if gene_table_path:
+        print(f'Joining dbNSFP gene table for LOEUF/MOEUF: {gene_table_path}')
+        # force=True: the dbNSFP gene table is plain gzip, not block-gzip, so it
+        # must be read serially (40k rows - negligible).
+        gene_ht = hl.import_table(gene_table_path, force=True)
+        # key_by must come before select: select replaces all non-key fields,
+        # which would drop Gene_name if keyed after.
+        gene_ht = gene_ht.key_by('Gene_name')
+        gene_ht = gene_ht.select(
+            gnomad_loeuf=_dbnsfp_float(gene_ht['gnomAD_LOEUF']),
+            gnomad_moeuf=_dbnsfp_float(gene_ht['gnomAD_MOEUF']),
+        )
+        has_symbol = hl.is_defined(mt.vep.SYMBOL)
+        mt = mt.annotate_rows(
+            vep=mt.vep.annotate(
+                gnomad_loeuf=hl.or_missing(
+                    has_symbol, gene_ht[mt.vep.SYMBOL].gnomad_loeuf
+                ),
+                gnomad_moeuf=hl.or_missing(
+                    has_symbol, gene_ht[mt.vep.SYMBOL].gnomad_moeuf
+                ),
+            )
+        )
+    else:
+        print('No --gene-table-path given: gnomad_loeuf/gnomad_moeuf will be missing')
+        mt = mt.annotate_rows(
+            vep=mt.vep.annotate(
+                gnomad_loeuf=hl.missing(hl.tfloat64),
+                gnomad_moeuf=hl.missing(hl.tfloat64),
+            )
+        )
 
     # ── 5. clinical metadata (optional) ───────────────────────────────────────
     if metadata_path:
@@ -439,5 +490,6 @@ if __name__ == '__main__':
         metadata_path=args.metadata_path,
         hpo_path=args.hpo_path,
         hpo_lookup_path=args.hpo_lookup_path,
+        gene_table_path=args.gene_table_path,
         overwrite=args.overwrite,
     )
