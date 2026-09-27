@@ -18,10 +18,22 @@ const COHORT_VARIANT_QUERY = `
       gene_symbol
       consequence
       impact
+      transcript
       cdna
+      gdna
       p_nomen
       cadd_score
+      revel_score
+      sift_score
+      polyphen_score
+      metarnn_score
+      clinpred_score
+      alphamissense_score
+      dbnsfp_popmax_af
+      gnomad_loeuf
+      gnomad_moeuf
       clinvar_sig
+      clinvar_clnrevstat
       gnomad_af
       gnomad_nonfin
       exome {
@@ -146,10 +158,30 @@ const CohortVariantPage = ({ datasetId, variantId }: Props) => (
                     <Row label="Gene" value={v.gene_symbol} />
                     <Row label="Consequence" value={v.consequence} />
                     <Row label="Impact" value={v.impact} />
+                    <Row label="Transcript" value={v.transcript} />
+                    <Row label="gDNA" value={v.gdna} />
                     <Row label="cDNA" value={v.cdna} />
                     <Row label="Protein" value={v.p_nomen} />
-                    <Row label="CADD Phred" value={v.cadd_score != null ? fmt(v.cadd_score, 2) : null} />
                     <Row label="ClinVar Significance" value={v.clinvar_sig} />
+                    <Row label="ClinVar Review Status" value={v.clinvar_clnrevstat} />
+                  </tbody>
+                </Table>
+              </Section>
+            )}
+
+            {(v.cadd_score != null || v.revel_score != null) && (
+              <Section>
+                <SectionHeading>In Silico Predictors</SectionHeading>
+                <Table>
+                  <tbody>
+                    <Row label="CADD Phred" value={v.cadd_score != null ? fmt(v.cadd_score, 2) : null} />
+                    <Row label="REVEL" value={v.revel_score != null ? fmt(v.revel_score, 3) : null} />
+                    <Row label="SIFT" value={v.sift_score != null ? fmt(v.sift_score, 3) : null} />
+                    <Row label="PolyPhen2 HDIV" value={v.polyphen_score != null ? fmt(v.polyphen_score, 3) : null} />
+                    <Row label="MetaRNN" value={v.metarnn_score != null ? fmt(v.metarnn_score, 3) : null} />
+                    <Row label="ClinPred" value={v.clinpred_score != null ? fmt(v.clinpred_score, 3) : null} />
+                    <Row label="AlphaMissense" value={v.alphamissense_score != null ? fmt(v.alphamissense_score, 3) : null} />
+                    <Row label="dbNSFP Popmax AF" value={v.dbnsfp_popmax_af != null ? fmt(v.dbnsfp_popmax_af, 6) : null} />
                   </tbody>
                 </Table>
               </Section>
@@ -162,6 +194,8 @@ const CohortVariantPage = ({ datasetId, variantId }: Props) => (
                   <tbody>
                     <Row label="gnomAD AF (all)" value={v.gnomad_af != null ? fmt(v.gnomad_af, 6) : null} />
                     <Row label="gnomAD AF (non-Finnish)" value={v.gnomad_nonfin != null ? fmt(v.gnomad_nonfin, 6) : null} />
+                    <Row label="LOEUF" value={v.gnomad_loeuf != null ? fmt(v.gnomad_loeuf, 3) : null} />
+                    <Row label="MOEUF" value={v.gnomad_moeuf != null ? fmt(v.gnomad_moeuf, 3) : null} />
                   </tbody>
                 </Table>
               </Section>

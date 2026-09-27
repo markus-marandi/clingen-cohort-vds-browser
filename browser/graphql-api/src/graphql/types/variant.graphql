@@ -329,10 +329,24 @@ type VariantDetails {
   gene_symbol: String
   consequence: String
   impact: String
+  transcript: String
   cdna: String
+  gdna: String
   p_nomen: String
   cadd_score: Float
+  # in-silico predictor set (dbNSFP v5.3.1a via VEP plugin; see annotation_sources.md)
+  revel_score: Float
+  sift_score: Float
+  polyphen_score: Float
+  metarnn_score: Float
+  clinpred_score: Float
+  alphamissense_score: Float
+  dbnsfp_popmax_af: Float
+  # gene-level constraint (dbNSFP gene table, gnomAD v4.1 LOEUF/MOEUF)
+  gnomad_loeuf: Float
+  gnomad_moeuf: Float
   clinvar_sig: String
+  clinvar_clnrevstat: String
   gnomad_af: Float
   gnomad_nonfin: Float
 }
