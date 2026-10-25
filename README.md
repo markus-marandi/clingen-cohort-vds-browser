@@ -2,8 +2,18 @@
 
 Incremental GVCF ingestion pipeline with annotation and a patched gnomAD browser frontend
 for WGS/WES cohort variant exploration. Runs on an internal Linux VM.
-Patient-linked data stays on the internal analysis VM; a separate public VM can be
-populated with sanitized, variant-level Elasticsearch exports via an explicit allowlist.
+The first release is GRCh37-only and internal-only. All authenticated internal
+users may see sample IDs. A public deployment is outside the current scope.
+
+See [current implementation status](docs/IMPLEMENTATION_STATUS.md) for the reviewed
+work remaining. The 34 exported Linear issues are historical records, not 34
+unimplemented tasks. [Metadata source requirements](docs/SAMPLE_METADATA_SOURCE.md)
+preserve the supplied prenatal and report-value definitions.
+
+The prepared [internal sample pilot](docs/DRAGON_SAMPLE_PILOT_HANDOFF.md) adds
+sample metadata, variant/gene carrier lists, report links, and sample called
+variants on `feat/internal-sample-browser`. Final real-data integration is on
+dragon, using the existing annotated MT; it does not require reannotation.
 
 ## Architecture
 
@@ -17,8 +27,9 @@ predictor scores (including CADD), ClinVar significance, gnomAD population AF, a
 per-sample clinical metadata. The VDS-only export path exists as a quick fallback before
 annotation has been run.
 
-Production serving uses two database tiers: the internal VM holds patient-linked data;
-a separate public/browser VM receives only de-identified, variant-level documents.
+Production serving targets the internal VM, including the planned sample-linked
+queries. Public export, a second public VM, and public-release privacy policies are
+deferred outside this release.
 
 ---
 
@@ -32,7 +43,8 @@ The pipeline runs in three stages, each driven by a dedicated script.
 
 Raw GVCFs arrive with `chr`-prefixed chromosomes in GRCh37 / hg19 coordinates.
 `parallel_ingest_cohort.py` fans out across **12 bcftools workers** to rename chromosomes,
-strip non-canonical contigs (keeps 1–22, X, Y), and run per-sample QC in parallel.
+strip non-canonical contigs (keeps 1–22, X, Y), and index the filtered outputs.
+Coverage/het–hom sample QC and admission thresholds remain to be implemented.
 The 20 filtered and re-indexed GVCFs are then handed to the **Hail VDS Combiner**, which
 merges them into a single sparse VDS on 4 Spark cores.
 If a VDS from a previous run already exists, new samples are appended rather than
@@ -279,7 +291,8 @@ python browser/data-pipeline/cohort_export.py \
 - [`annotation_sources.md`](annotation_sources.md): detailed annotation source mapping
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): full data model, storage layout, security model
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md): step-by-step VM setup guide
-- [`docs/pipeline/`](docs/pipeline/): pipeline-scoped guidance
+- [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md): current scope and reviewed issue assessments
+- [`docs/SAMPLE_METADATA_SOURCE.md`](docs/SAMPLE_METADATA_SOURCE.md): prenatal and report tokens from the supplied specification
 
 ---
 

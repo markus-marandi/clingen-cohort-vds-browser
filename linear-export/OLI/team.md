@@ -12,3 +12,8 @@
 ## Issues
 
 All 34 issues exported to [cohort-browser-v1/](cohort-browser-v1/), one file per issue (OLI-1 .. OLI-34).
+
+This is the number of historical issue records, not the current amount of unfinished
+work. Each issue now separates its exported status from its 2026-10-25 assessment.
+Use [current implementation status](../../docs/IMPLEMENTATION_STATUS.md) for the
+reviewed scope, implemented work, partial work, and deferred public-release items.

@@ -19,6 +19,8 @@ const HelpPage = lazy(() => import('./help/HelpPage'))
 const HelpTopicPage = lazy(() => import('./help/HelpTopicPage'))
 const HomePage = lazy(() => import('./HomePage'))
 const CohortFilterPage = lazy(() => import('./CohortFilterPage'))
+const CohortSamplesPage = lazy(() => import('./CohortSamples/CohortSamplesPage'))
+const CohortSamplePage = lazy(() => import('./CohortSamples/CohortSamplePage'))
 const MOUPage = lazy(() => import('./MOUPage'))
 const StatsPage = lazy(() => import('./StatsPage/StatsPage'))
 const PublicationsPage = lazy(() => import('./PublicationsPage'))
@@ -56,6 +58,14 @@ const Routes = () => {
       <Route exact path="/" component={HomePage} />
 
       <Route exact path="/filter" component={CohortFilterPage} />
+      <Route exact path="/samples" component={CohortSamplesPage} />
+      <Route
+        exact
+        path="/sample/:sampleId"
+        render={({ match }: any) => (
+          <CohortSamplePage key={match.params.sampleId} sampleId={match.params.sampleId} />
+        )}
+      />
 
       <Route
         exact

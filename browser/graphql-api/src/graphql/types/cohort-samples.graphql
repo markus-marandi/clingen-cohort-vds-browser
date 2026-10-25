@@ -1,0 +1,84 @@
+# Internal-only deployment. Raw metadata strings intentionally preserve source values.
+type CohortSample {
+  sample_id: String!
+  sex_assigned: String
+  date_of_birth: String
+  date_seq: String
+  run_id: String
+  care_site: String
+  material: String
+  health_status: String
+  test: String
+  instrument: String
+  ref_genome: String
+  panels: [String!]!
+  report_status: String!
+  reported_variants: [String!]!
+  omitted_report_entries: Int!
+}
+
+type CohortSampleVariant {
+  sample_id: String!
+  variant_id: String!
+  chrom: String!
+  pos: Int!
+  ref: String!
+  alt: String!
+  gene_symbol: String
+  consequence: String
+  genotype: String!
+  depth: Int
+  gq: Int
+  var_pct: Float
+  in_report: Boolean
+}
+
+type CohortCarrier {
+  sample: CohortSample!
+  variant: CohortSampleVariant!
+}
+
+type CohortCarrierPage {
+  rows: [CohortCarrier!]!
+  total_count: Int!
+  has_more: Boolean!
+  next_cursor: String
+}
+
+type CohortSamplePage {
+  rows: [CohortSample!]!
+  total_count: Int!
+  has_more: Boolean!
+  next_cursor: String
+}
+
+type CohortSampleVariantPage {
+  rows: [CohortSampleVariant!]!
+  total_count: Int!
+  has_more: Boolean!
+  next_cursor: String
+}
+
+extend type Query {
+  cohort_samples(limit: Int = 100, offset: Int = 0, after: String): CohortSamplePage!
+    @cost(value: 5)
+  cohort_sample(sample_id: String!): CohortSample @cost(value: 1)
+  cohort_sample_variants(
+    sample_id: String!
+    limit: Int = 100
+    offset: Int = 0
+    after: String
+  ): CohortSampleVariantPage! @cost(value: 5)
+  cohort_variant_carriers(
+    variant_id: String!
+    limit: Int = 100
+    offset: Int = 0
+    after: String
+  ): CohortCarrierPage! @cost(value: 5)
+  cohort_gene_carriers(
+    gene_symbol: String!
+    limit: Int = 100
+    offset: Int = 0
+    after: String
+  ): CohortCarrierPage! @cost(value: 5)
+}

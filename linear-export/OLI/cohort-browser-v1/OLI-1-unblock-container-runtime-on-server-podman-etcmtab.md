@@ -1,6 +1,8 @@
 # OLI-1: Unblock container runtime on server (Podman /etc/mtab)
 
-- Status: In Progress
+- Status: Needs host verification
+- Exported status: In Progress
+- Reviewed: 2026-10-25
 - Priority: Urgent
 - Estimate: 3
 - Assignee: Markus Mar
@@ -9,7 +11,15 @@
 - Updated: 2026-08-27
 - Linear: https://linear.app/necto-tech/issue/OLI-1/unblock-container-runtime-on-server-podman-etcmtab
 
-## Description
+## Current assessment
+
+The original Podman /etc/mtab problem is host-specific. Main includes bootstrap/preflight work (1272d83, 963e66c), and the other machine reports a working Docker test stack. That does not establish that the original Podman host issue is resolved.
+
+This is a repository assessment, not a live Linear update. See
+[current implementation status](../../../docs/IMPLEMENTATION_STATUS.md) for the
+release scope and evidence boundaries.
+
+## Original exported description
 
 BLOCKER for every downstream deploy task. Server runs Podman 5.5.1; docker compose fails on the /etc/mtab symlink. Resolve by fixing the symlink, switching to `podman compose`, or documenting a Docker-only requirement. Tracked in browser/TODO.md > Local Stack.
 

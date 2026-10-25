@@ -1,6 +1,8 @@
 # OLI-18: Build the cohort_sample_variants index and export
 
-- Status: Backlog
+- Status: Design only
+- Exported status: Backlog
+- Reviewed: 2026-10-25
 - Priority: Urgent
 - Estimate: 8
 - Labels: export, internal
@@ -8,7 +10,20 @@
 - Updated: 2026-08-27
 - Linear: https://linear.app/necto-tech/issue/OLI-18/build-the-cohort-sample-variants-index-and-export
 
-## Description
+## Current assessment
+
+cohort_sample_variants has a documented mapping, including var_pct and in_report. Non-reference sample/variant export and report-source integration are not implemented.
+
+This is a repository assessment, not a live Linear update. See
+[current implementation status](../../../docs/IMPLEMENTATION_STATUS.md) for the
+release scope and evidence boundaries.
+
+## Prepared pilot branch
+
+`feat/internal-sample-browser` (not merged/deployed): The prepared exporter streams actual non-reference GT or LGT/LA calls from the existing annotated MT, including DP/GQ/allele fraction and nullable report membership. The Hail adapter still requires real-MT verification.
+See [dragon handoff](../../../docs/DRAGON_SAMPLE_PILOT_HANDOFF.md).
+
+## Original exported description
 
 Per docs/SAMPLE_VARIANT_INDEX.md section 2b, plus two fields the new ERD requires that the design omits: var_pct (from the `AD` entry field) and in_report. Export non-ref entries from the annotated MT. Internal VM only. Serves UC-1 and UC-2. Sizing: millions of docs at 2000 samples.
 

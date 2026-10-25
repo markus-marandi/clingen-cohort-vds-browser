@@ -5,6 +5,7 @@ import { DatasetId } from '@gnomad/dataset-metadata/metadata'
 import DocumentTitle from '../DocumentTitle'
 import Query from '../Query'
 import StatusMessage from '../StatusMessage'
+import CohortCarriers from '../CohortSamples/CohortCarriers'
 
 const COHORT_VARIANT_QUERY = `
   query CohortVariant($variantId: String!, $datasetId: DatasetId!) {
@@ -117,6 +118,7 @@ const CohortVariantPage = ({ datasetId, variantId }: Props) => (
 
         return (
           <>
+            <CohortCarriers key={variantId} variantId={variantId} />
             <Section>
               <SectionHeading>Variant</SectionHeading>
               <Table>

@@ -1,11 +1,19 @@
 # Architecture Specification
 
-_Last updated: 2026-05-29_
+> Main-baseline/design assessment: the separate `feat/internal-sample-browser`
+> branch now prepares TSV/MT export, sample/carrier APIs and browser views.
+> See [the pilot handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md) for its current contract,
+> which preserves raw dates and nullable report membership. Real-data integration
+> is still pending. The broader design below is not the current pilot task list.
+
+_Scope and implementation assessment updated: 2026-10-25_
 
 Cohort variant browser for internal WGS/WES data. Concatenates and stores genotypes in Hail VDS,
 annotates variants with VEP + dbNSFP + ClinVar + gnomAD, and serves results through a
-patched gnomAD browser UI. Patient-linked data and public-facing variant data are deployed as two
-separate database tiers, preferably on separate VMs.
+patched gnomAD browser UI. The first release is GRCh37-only and internal-only. All
+authenticated internal users may see sample IDs. Public deployment is outside v1.
+See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for source implementation,
+unmerged browser work, and remaining acceptance checks.
 
 ---
 
@@ -28,28 +36,21 @@ raw GVCFs
 
 ---
 
-## Two Database Security Model
+## Internal access and release scope
 
-The pipeline must produce two different serving databases from the VDS/MatrixTable layer:
+The internal analysis VM is the source of truth for raw/filtered GVCFs, VDS,
+annotated MatrixTables, clinical metadata, aggregate variant indices, and planned
+sample/carrier indices. The browser and API serve authenticated internal users.
+All such users may see sample IDs in sample, carrier, HPO, and report workflows.
 
-| Tier | Location | Contents | Access |
-|---|---|---|---|
-| Internal patient-linked database | Internal analysis VM | Raw/filtered GVCFs, VDS, full annotated MatrixTable, sample metadata, patient or sample IDs, per-sample genotype fields, internal Elasticsearch indexes | Restricted operators and authenticated clinical/internal users only |
-| Public/sanitized variant database | Separate public/browser VM | De-identified variant-level documents only: variant identity, annotations, and approved aggregate cohort frequency fields | Public-facing or broader-access browser |
+V1 uses GRCh37/hg19 coordinates only. Build metadata must agree with the genomic
+inputs and reference resources; adding a GRCh38 label does not provide GRCh38 support.
 
-The internal VM is the source of truth. It performs ingest, annotation, metadata joins, and any
-patient-linked queries. The public VM must not contain raw GVCFs, VDS, full MatrixTables, sample
-metadata files, patient IDs, sample IDs, per-sample genotypes, report flags, HPO assignments, dates
-of birth, sequencing dates, care sites, run IDs, or internal paths.
-
-The only data movement from the internal VM to the public VM should be a sanitized export bundle or
-bulk Elasticsearch load generated from an explicit allowlist of public fields. That export should
-fail closed if any disallowed patient-linked field is present. The public VM should not have network
-or filesystem access back to the internal VM.
-
-Before truly internet-facing release, define a privacy threshold for aggregate cohort frequencies
-in small cohorts. For example, decide whether very low counts are suppressed, rounded, bucketed, or
-kept internal-only.
+Public deployment, a second public VM, public export profiles, one-way transfer,
+and public low-count policies are deferred outside v1. The former two-tier plan
+remains in the original exported issue descriptions as historical context only.
+Internal authentication, HTTPS, service isolation, and protection of credentials
+and patient data remain required; this is scope, not proof of deployed controls.
 
 ---
 
@@ -137,7 +138,7 @@ appears in a signed-out clinical report.
 | `sample_id` | join key across all tables |
 | `sex_assigned` | sex from clinical metadata (social/assigned); values: Male, Female, Other, Unknown |
 | `sex_chr` | chromosomal sex inferred from genotype (X heterozygosity / chrY coverage); values: Male, Female, ambiguous |
-| `date_of_birth` | ISO date string YYYY-MM-DD |
+| `date_of_birth` | Source accepts YYYY-MM-DD or the literal `prenatal`; storage/conversion remains unresolved (see `SAMPLE_METADATA_SOURCE.md`) |
 | `date_seq` | date of sequencing run |
 | `run_id` | sequencing run identifier |
 | `material` | biological source material: blood, tissue, saliva, buccal swab, etc. |
@@ -150,7 +151,7 @@ appears in a signed-out clinical report.
 |---|---|
 | `test` | WES or WGS |
 | `instrument` | sequencer model (NovaSeq X, etc.) |
-| `ref_genome` | hg19 / GRCh37 |
+| `ref_genome` | GRCh37 / hg19 only in v1; validate compatibility with the input and annotation resources |
 | `sample_id` | |
 
 ### Panels — one-to-many (WES samples)
@@ -161,8 +162,10 @@ appears in a signed-out clinical report.
 | `panel` | ordered gene panel name (e.g. ANEEMIA, SKIN) |
 
 The schematic draws this wide (`Panel1`, `Panel2`, `Panel3`). Stored long: one row per
-ordered panel, indexed as a `panels` keyword array on `cohort_samples`. A sample with no
-ordered panel has an empty array, not a missing field.
+ordered panel, indexed as a `panels` keyword array on `cohort_samples`. The user
+confirmed `whole exome` for samples without separately ordered panels. Unknown or
+unmatched assignments must not silently become whole exome; validate source completeness
+first. This grouping/import behavior remains to be implemented.
 
 ### HPO assignments — one-to-many (WGS samples)
 
@@ -188,7 +191,8 @@ re-annotation of every sample that carries the ID.
 
 ### Schematic vs. implementation
 
-Deltas between this ERD and the code as of 2026-08-27. Everything not listed is aligned.
+Known schema differences and incomplete paths reviewed against main at `d776a06`.
+This is not an exhaustive implementation checklist; see `IMPLEMENTATION_STATUS.md`.
 
 | ERD field / entity | Current code | Where | Issue |
 |---|---|---|---|
@@ -198,8 +202,8 @@ Deltas between this ERD and the code as of 2026-08-27. Everything not listed is 
 | Procedure (`test`, `instrument`, `ref_genome`) | `test`/`instrument` ride along in the metadata CSV; no `ref_genome` | metadata loader | OLI-7 |
 | `ref_genome` per procedure | hardcoded `reference_genome: 'GRCh37'` | `cohort-variant-queries.ts:29` | OLI-8 |
 | `sex_chr`, `date_seq`, `run_id` | `chromosomal_sex`; no `date_seq`, no `run_id` | `docs/SAMPLE_VARIANT_INDEX.md`, metadata loader | OLI-9 |
-| In Report as its own table | modelled only as an `in_report` column | — | OLI-10 |
-| Panels 1..N | singular `panel` column | `annotate_cohort.py` | OLI-13 |
+| In Report as its own table | join table and Boolean are design-only; no authoritative report importer | — | OLI-10 |
+| Panels 1..N | CSV pass-through; no one-to-many panel grouping | `annotate_cohort.py` | OLI-13 |
 | HPO terms table (`hpo_version`, `valid_from`) | no version, no validity date | `_load_hpo_ht` | OLI-14 |
 | `hpo_term` on the lookup only | `hpo_terms` denormalized onto every sample | `annotate_cohort.py` | OLI-15 |
 | `var%`, `in_report` on genomic data | absent from the `cohort_sample_variants` design | `docs/SAMPLE_VARIANT_INDEX.md` | OLI-18 |
@@ -289,8 +293,8 @@ Fields to extract:
 |---|---|---|
 | Internal VDS | `/mnt/sdb/data/vds/cohort_*.vds` on internal VM | Raw genotype store; never modified post-ingest |
 | Internal MatrixTable | `/mnt/sdb/data/mt/cohort_annotated.mt` on internal VM | Annotation, metadata, patient-linked query, and export layer; rebuilt on schema change |
-| Internal Elasticsearch | `cohort_variants_internal` or equivalent on internal VM | Optional patient-linked/internal browser queries; may contain restricted fields |
-| Public Elasticsearch | `cohort_variants_public` or equivalent on public VM | Sanitized variant-level docs only; no patient/sample identifiers or per-sample fields |
+| Internal aggregate Elasticsearch | `cohort_variants` | Current variant-level annotation and cohort-count queries |
+| Planned internal sample indices | `cohort_samples`, `cohort_sample_variants` | Sample metadata and per-sample carriers/reports; design only |
 | Reference data | `/mnt/sdb/reference/` | Immutable annotation sources; not inside git repo |
 
 ---
@@ -299,13 +303,9 @@ Fields to extract:
 
 ### Target
 
-There are two target deployments:
-
-- Internal browser/API on the internal VM for patient-linked investigation.
-- Public/sanitized browser/API on a separate VM for de-identified variant-level search.
-
-The internal deployment contains patient-linked genomic variants and must be gated even on the
-internal network. The public deployment is built only from the sanitized public Elasticsearch index.
+One internal browser/API deployment for GRCh37 cohort investigation. All
+authenticated internal users may see sample IDs. Public deployment is excluded
+from v1. Sample-linked export/query/view paths are still planned work.
 
 ### Network architecture
 
@@ -314,20 +314,16 @@ Internal user laptop
   ─── HTTPS (port 443) ───────────────────────────────────────────────────────►
                                               internal VM nginx reverse proxy
                                               ├── TLS termination
-                                              ├── auth check (see options)
-                                              ├── → :3000  gnomAD browser UI
-                                              └── → :8000  GraphQL API
+                                              ├── authentication
+                                              ├── browser UI
+                                              └── GraphQL API
 
-                  Elasticsearch :9200  ◄── bound to 127.0.0.1 only, not exposed
-
-Internal VM sanitized export
-  ─── one-way transfer of allowlisted public variant docs ────────────────────►
-                                              public/browser VM
-                                              ├── nginx / TLS
-                                              ├── public GraphQL API
-                                              ├── public browser UI
-                                              └── public Elasticsearch, localhost only
+                  Elasticsearch :9200  ◄── host access restricted to loopback;
+                                           container networking isolated
 ```
+
+This is the target deployment. The tracked Compose stack is a development stack;
+the required production controls are not established by this diagram.
 
 ### Authentication
 
@@ -338,13 +334,11 @@ nginx HTTP basic auth — `.htpasswd` file, managed manually for the small known
 - Elasticsearch binds to `127.0.0.1` only — never reachable from outside the host
 - All user-facing traffic over HTTPS; no plain HTTP in production
 - Firewall: only ports 443 (HTTPS) and 22 (SSH) open inbound on the VM
-- `sample_id`, patient IDs, and per-sample genotype fields must not appear in public browser results
+- All authenticated internal users may see sample IDs and the sample-linked results required by their workflows
+- The browser/API must not be made public as part of v1
 - No internal file paths (VDS, MT, reference dirs) in GraphQL error messages or API responses
 - Session timeout: configure in the auth proxy (≤8 h idle)
 - TLS certificate: use internal CA cert or a self-signed cert accepted by internal browsers
-- Public export uses an allowlist, not a blocklist
-- Public VM has no raw GVCFs, VDS, MatrixTables, clinical metadata, or internal credentials
-- Public VM cannot initiate network connections to internal data services
 
 ### nginx additions needed
 
@@ -382,12 +376,14 @@ See `docs/DEPLOYMENT.md` for the browser stack deployment steps.
 
 ## Open Decisions
 
-- Public export profile: exact allowlisted fields, index name, transfer method, and release checklist
-- Public privacy thresholds for small cohort counts and rare variants
-- ~~dbNSFP integration method~~: resolved — VEP plugin (single VEP pass), wired in `vep_settings.json`
-- dbNSFP v5.3.1 field allowlist: variant-level predictors implemented; still confirm the exact
-  popmax-AF column (`dbnsfp_popmax_af`) and gene-constraint columns (`LOEUF`/`MOEUF`) against the
-  v5.3.1 README, and decide the smaller public-export subset
+- Whether a sample may have multiple sequencing procedures and how those runs affect counting
+- Authoritative report source, Unknown/None semantics, and prenatal storage representation
+  (source tokens are preserved in `SAMPLE_METADATA_SOURCE.md`)
+- Which of the existing predictor superset fields are required for v1; variant fields are already
+  implemented, and 439c025 records the dbNSFP field verification and separate constraint join
 - TLS certificate source: internal CA vs. self-signed
 - Whether `sex_chr` inference runs inside `annotate_cohort.py` or as a pre-processing step
-- HPO filter UI exposure: first demo or later phase
+- Sample/carrier/HPO/report UI acceptance and genotype quality thresholds
+
+Resolved scope: GRCh37-only, internal-only, with sample IDs visible to all
+authenticated internal users. Public export/deployment decisions do not block v1.

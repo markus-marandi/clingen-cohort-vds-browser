@@ -1,6 +1,8 @@
 # OLI-7: Model the Procedure entity (test, instrument, ref_genome)
 
-- Status: Backlog
+- Status: Design only
+- Exported status: Backlog
+- Reviewed: 2026-10-25
 - Priority: High
 - Estimate: 5
 - Labels: schema, pipeline
@@ -8,7 +10,20 @@
 - Updated: 2026-08-27
 - Linear: https://linear.app/necto-tech/issue/OLI-7/model-the-procedure-entity-test-instrument-ref-genome
 
-## Description
+## Current assessment
+
+Procedure fields are designed but have no dedicated validated internal export. V1 is GRCh37-only. Whether one sample can have multiple sequencing procedures remains unresolved; do not assume resequencing is excluded.
+
+This is a repository assessment, not a live Linear update. See
+[current implementation status](../../../docs/IMPLEMENTATION_STATUS.md) for the
+release scope and evidence boundaries.
+
+## Prepared pilot branch
+
+`feat/internal-sample-browser` (not merged/deployed): The pilot carries the supplied test/instrument/ref_genome fields with each sample and requires one procedure row per sample. Resequencing identity is deferred.
+See [dragon handoff](../../../docs/DRAGON_SAMPLE_PILOT_HANDOFF.md).
+
+## Original exported description
 
 New ERD adds a Procedure table keyed on sample_id: test, instrument, ref_genome. `test` and `instrument` currently only ride along in the metadata CSV via annotate_cols; ref_genome does not exist anywhere. Define the source columns, add them to the internal sample export, and decide whether Procedure is its own index or fields on cohort_samples.
 

@@ -1,6 +1,8 @@
 # OLI-9: Align sample schema: chromosomal_sex -> sex_chr, add date_seq and run_id
 
-- Status: Backlog
+- Status: Partial
+- Exported status: Backlog
+- Reviewed: 2026-10-25
 - Priority: High
 - Estimate: 2
 - Labels: schema
@@ -8,7 +10,20 @@
 - Updated: 2026-08-27
 - Linear: https://linear.app/necto-tech/issue/OLI-9/align-sample-schema-chromosomal-sex-sex-chr-add-date-seq-and-run-id
 
-## Description
+## Current assessment
+
+sex_chr, date_seq, and run_id are present in the sample-index design, but there is no validated sample export or sex-inference implementation. The supplied prenatal date token also needs representation; see docs/SAMPLE_METADATA_SOURCE.md.
+
+This is a repository assessment, not a live Linear update. See
+[current implementation status](../../../docs/IMPLEMENTATION_STATUS.md) for the
+release scope and evidence boundaries.
+
+## Prepared pilot branch
+
+`feat/internal-sample-browser` (not merged/deployed): The pilot exports the supplied sex_assigned, DOB/date_seq/run_id and other raw metadata; prenatal remains a string. It does not infer sex_chr or normalize dates.
+See [dragon handoff](../../../docs/DRAGON_SAMPLE_PILOT_HANDOFF.md).
+
+## Original exported description
 
 New ERD Sample data is: sample_id, sex_assigned, sex_chr, date_of_birth, date_seq, run_id, material, care_site, health_status. The design in docs/SAMPLE_VARIANT_INDEX.md uses chromosomal_sex and has neither date_seq nor run_id. Update the design doc and the cohort_samples mapping before the index is built.
 

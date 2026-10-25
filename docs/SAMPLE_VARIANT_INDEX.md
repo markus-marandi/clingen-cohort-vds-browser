@@ -1,18 +1,24 @@
 # Internal Sample-Variant Index (Design)
 
+> Main-baseline/design assessment: the separate `feat/internal-sample-browser`
+> branch now prepares TSV/MT export, sample/carrier APIs and browser views.
+> See [the pilot handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md) for its current contract,
+> which preserves raw dates and nullable report membership. Real-data integration
+> is still pending. The broader design below is not the current pilot task list.
+
 _Design for the internal, patient-linked indices that answer sample-level questions
 (UC-1, UC-2, UC-3). Card #82._
 
-> **INTERNAL ONLY.** Everything described here is patient-linked and must live on the
-> internal VM. None of these indices, fields, or GraphQL queries may be exposed through
-> the public/sanitized browser. See `docs/ARCHITECTURE.md` (two-VM split) and
-> `docs/BROWSER_USE_CASES.md` (UC-1/2/3).
+This is a design, not an implemented index/export/API. The first release is
+GRCh37-only and internal-only. All authenticated internal users may see sample IDs.
+Public deployment and a separate public schema are outside v1. See
+[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for current assessments.
 
 ---
 
 ## 1. Why a separate index
 
-The public-facing `cohort_variants` index stores **one document per variant** with
+The current internal aggregate `cohort_variants` index stores **one document per variant** with
 **aggregate** cohort counts (`ac_total`, `an_total`, `af_total`, `hom_count`). It has no
 sample linkage by design, so it cannot answer:
 
@@ -61,7 +67,13 @@ Serves UC-3 (HPO → samples) and holds the clinical metadata used to describe c
 
 Field set follows the ERD in `docs/ARCHITECTURE.md`. `sex_chr` was `chromosomal_sex`
 (OLI-9). `test` / `instrument` / `ref_genome` are the Procedure entity, flattened onto the
-sample doc rather than given their own index — one procedure per sample (OLI-7).
+sample doc rather than given their own index. That design assumes one procedure per
+sample; repeated sequencing is still an open question under OLI-7.
+
+The supplied birth-date value `prenatal` is not represented by the date mapping above.
+Unknown/None report tokens also remain unresolved; see
+[SAMPLE_METADATA_SOURCE.md](SAMPLE_METADATA_SOURCE.md). Do not treat this draft
+mapping or Boolean as an agreed conversion for those source values.
 
 `hpo_ids` and `panels` are keyword arrays; the schematic draws both wide (`hpo_id1`,
 `hpo_id2`, `Panel1`…`Panel3`). HPO *labels* are deliberately absent: they live in the
@@ -133,7 +145,9 @@ WES/WGS samples this is millions of docs — well within a single-node ES, but l
 
 ## 4. GraphQL (internal deployment only)
 
-Add cohort resolvers, registered **only** when the API runs in internal mode:
+Add cohort resolvers behind the internal deployment's authentication. All
+authenticated internal users may receive sample IDs. A public/internal schema
+split is not a v1 requirement:
 
 | Query | UC | ES |
 |---|---|---|
@@ -146,16 +160,15 @@ lookup on the returned `sample_id`s).
 
 ---
 
-## 5. Privacy guarantees
+## 5. Internal access
 
-- These indices and resolvers are **never** created on the public VM. Gate them behind an
-  explicit `DEPLOYMENT_MODE=internal` env check in the GraphQL API and in the export
-  script.
-- The public export allowlist (see `docs/ARCHITECTURE.md`) must **fail closed** if any of
-  `sample_id`, `hpo_ids`, `genotype`, `gq`, `depth`, `var_pct`, `in_report`, `date_of_birth`,
-  `date_seq`, `run_id` or `care_site` are present.
-- Consider a small-count privacy threshold before returning carrier lists even internally,
-  to match the public rare-variant threshold policy.
+- Restrict the deployment to authenticated internal users and isolate Elasticsearch.
+- All authenticated internal users may see sample IDs in carrier/HPO/report results.
+- No count-based suppression of those internal sample lists is specified for v1.
+- Public deployment, public exports, public privacy thresholds, and a separate
+  public schema gate are deferred outside v1.
+- Keep patient data, raw genomic data, credentials, and internal service access out
+  of public repositories and unauthenticated endpoints.
 
 ---
 
@@ -164,4 +177,4 @@ lookup on the returned `sample_id`s).
 - Single `internal` export profile in `cohort_export.py` vs. a separate script.
 - Whether UC-3 should eagerly return each sample's carrier variants or lazily on drill-down.
 - Minimum GQ/DP threshold for a genotype to count as a carrier call.
-- Carrier-count privacy threshold (internal).
+- Repeated sequencing under one sample ID and the authoritative report/prenatal representation.

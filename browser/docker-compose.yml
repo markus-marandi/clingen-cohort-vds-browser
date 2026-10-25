@@ -36,6 +36,8 @@ services:
     environment:
       - NODE_ENV=development
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - COHORT_SAMPLES_INDEX=${COHORT_SAMPLES_INDEX:-cohort_samples}
+      - COHORT_SAMPLE_VARIANTS_INDEX=${COHORT_SAMPLE_VARIANTS_INDEX:-cohort_sample_variants}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PORT=8000

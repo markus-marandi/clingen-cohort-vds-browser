@@ -1,12 +1,23 @@
 # Browser Use Cases
 
+> Main-baseline/design assessment: the separate `feat/internal-sample-browser`
+> branch now prepares TSV/MT export, sample/carrier APIs and browser views.
+> See [the pilot handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md) for its current contract,
+> which preserves raw dates and nullable report membership. Real-data integration
+> is still pending. The broader design below is not the current pilot task list.
+
 _Target query scenarios for the cohort variant browser._
 
 Each use case describes the clinical question, the required Elasticsearch fields,
 the query pattern, and the current implementation status.
 
-Internal deployment only — use cases 1–3 return sample-linked results and must not
-be exposed through the public/sanitized browser.
+Reviewed 2026-10-25 against local main at `d776a06`. V1 is GRCh37-only and
+internal-only. All authenticated internal users may see sample IDs. Public deployment
+is excluded. See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for the full
+issue inventory and the separate, unmerged browser review branch.
+
+The ES examples below illustrate target queries; implementation status and remaining
+acceptance limits are stated separately for each use case.
 
 ---
 
@@ -76,13 +87,14 @@ internal deployment, each variant also lists carrier samples.
 | Component | Status |
 |---|---|
 | ES field `gene_symbol` | indexed (keyword) |
-| GraphQL `fetchVariantsByGene` | implemented (uses region coordinates from gene table, not `gene_symbol` term) |
-| Direct `gene_symbol` term query | **not yet exposed** in GraphQL |
-| Sample-level carrier list | **not implemented** (same gap as UC-1) |
+| Direct gene-symbol query | implemented in `fetchVariantsByGeneSymbol` and `fetchVariantsByGene` |
+| GraphQL gene/multi-gene filters | implemented via `cohort_filtered_variants` |
+| Sample-level carrier list | not implemented; needs the internal sample/variant export and query path |
 
-**Gap:** Current `fetchVariantsByGene` resolves gene → chrom/start/stop and queries by
-region. A direct `gene_symbol` term filter is simpler and more precise for this use case.
-Add a `fetchVariantsByGeneSymbol` query or extend the existing one.
+**Remaining:** Add carrier samples and their qualifying genotypes. The direct
+variant-level gene-symbol query is already implemented (OLI-21), so this is not a
+missing gene-filter task. Normal gene-page/reference-index runtime fixes are on
+the separate review branch, not this main baseline.
 
 ---
 
@@ -111,19 +123,17 @@ associated variants and clinical metadata.
 
 | Component | Status |
 |---|---|
-| HPO fields in ES mapping | **not present** |
-| HPO export in `cohort_export.py` | **not implemented** |
-| HPO-to-sample join in `annotate_cohort.py` | **not implemented** |
-| GraphQL HPO query | **not implemented** |
+| HPO-to-sample import | implemented in `annotate_cohort.py` with optional assignment and label CSVs |
+| Versioned HPO lookup | not implemented |
+| HPO/sample export to internal ES | not implemented |
+| GraphQL HPO-to-sample query | not implemented |
+| Sample/HPO browser view | not implemented |
 
-**Gap:** HPO data lives in a separate join table (`sample_id` × `HPO_ID`) and an HPO
-lookup table (`HPO_ID` → `HPO_termin`). Neither is exported to Elasticsearch. This use
-case requires:
-
-1. Join HPO assignments to sample metadata in `annotate_cohort.py` or a dedicated step.
-2. Add `hpo_ids` (keyword array) and `hpo_terms` (keyword array) to the internal ES index.
-3. Add a GraphQL query for HPO-based sample lookup.
-4. Keep HPO fields out of the public/sanitized index.
+**Remaining:** Build the versioned HPO lookup and internal sample export, then
+expose ID/label lookup with sample results and variant drill-down. The current
+helper copies both IDs and labels onto sample columns; the design to keep labels
+in a versioned lookup is not implemented. All authenticated internal users may
+see the matching sample IDs. Public export is outside v1.
 
 ---
 
@@ -157,18 +167,15 @@ showing cohort frequency and annotation details.
 
 | Component | Status |
 |---|---|
-| ES field `gene_symbol` | indexed |
-| ES field `clinvar_sig` | indexed |
-| Combined filter query | **not yet exposed** in GraphQL |
-| UI filter for ClinVar significance | **not implemented** |
+| ES fields `gene_symbol` and `clinvar_sig` | indexed |
+| Combined filter query | implemented via `cohort_filtered_variants` |
+| ClinVar significance control | implemented on the dedicated `/filter` page |
+| Filter controls embedded on gene pages | not implemented |
 
-**Gap:** Both fields exist in ES. Needs a new GraphQL query or filter parameter that
-combines `gene_symbol` + `clinvar_sig`. The browser UI needs a ClinVar significance
-filter dropdown on gene pages.
-
-**Note:** `clinvar_sig` values come from VEP's `ClinVar_CLNSIG` field and may contain
-multi-value strings (e.g. `Pathogenic/Likely_pathogenic`). The ES query may need a
-`match` or `wildcard` query instead of exact `term` for partial matches.
+**Remaining:** Agree whether the dedicated filter page meets v1 UI acceptance,
+and validate pathogenic/likely-pathogenic/conflicting classifications and review
+status semantics. The existing implementation matches ClinVar significance by
+substring; it does not define the complete classification policy.
 
 ---
 
@@ -243,20 +250,17 @@ cohort allele frequencies across the specified gene panel.
 
 | Component | Status |
 |---|---|
-| ES field `gene_symbol` | indexed |
-| ES field `clinvar_sig` | indexed |
-| ES field `revel_score` | **not indexed** — not in ES mapping or export |
-| Multi-gene `terms` query | **not yet exposed** in GraphQL |
-| Per-gene aggregation | **not implemented** |
+| ES fields `gene_symbol`, `clinvar_sig`, and `revel_score` | mapped and exported |
+| Multi-gene combined filters | implemented via `cohort_filtered_variants` |
+| ClinVar and REVEL UI controls | implemented on `/filter` |
+| Per-gene aggregation | implemented: variant count and mean/max variant AF |
+| Distinct-sample carrier frequency | not implemented or fully specified |
 
-**Gap:** `revel_score` is defined in the annotation spec but not yet exported to
-Elasticsearch. Needs:
-
-1. Add `revel_score` to `cohort_export.py` export fields and ES mapping.
-2. Add `revel_score` to the annotated MatrixTable (from dbNSFP).
-3. Add a multi-gene + filter GraphQL query with per-gene aggregations.
-4. Consider a gene-panel preset endpoint that accepts a panel name and resolves to
-   gene symbols.
+**Remaining:** Define whether the question asks for per-variant AF or the proportion
+of eligible samples carrying at least one qualifying variant. Mean/max variant AF
+does not calculate distinct-sample carrier prevalence. The example uses REVEL
+`>0.9`, while the implemented minimum filter is inclusive (`>=`); agree the boundary.
+REVEL export and combined queries themselves are already present.
 
 ---
 
@@ -313,49 +317,46 @@ criteria within the specified gene or region.
 
 | Component | Status |
 |---|---|
-| ES field `consequence` | indexed (keyword) |
-| ES field `gene_symbol` | indexed (keyword) |
-| ES field `impact` | indexed (keyword) |
-| ES field `chrom` + `pos` | indexed |
-| ES field `gdna` (HGVS_g) | indexed (keyword) — not suitable for range queries |
-| Combined consequence + gene query | **not yet exposed** in GraphQL |
-| Combined impact + region query | **not yet exposed** in GraphQL |
-| UI consequence filter | **not implemented** |
+| ES fields `consequence`, `gene_symbol`, `impact`, `chrom`, and `pos` | mapped and exported |
+| Combined consequence + gene query | implemented via `cohort_filtered_variants` |
+| Combined impact + region query | implemented via `cohort_filtered_variants` |
+| Consequence/impact UI controls | implemented on `/filter` |
+| HGVS_g interval parser | not implemented; the UI accepts chromosome/start/stop |
 
-**Gap:** All required ES fields exist. Needs:
-
-1. GraphQL query parameters for `consequence`, `impact`, and multi-filter combinations.
-2. For HGVS_g range queries: convert HGVS_g notation to chrom + pos range before
-   querying (the `gdna` field is a keyword string and cannot be range-queried directly).
-3. Browser UI consequence/impact filter on gene and region pages.
+**Remaining:** Define LoF and multi-consequence matching. Annotation can join
+consequence terms with `&`, while the current filter matches a single exact keyword.
+Specify coordinate conventions and whether HGVS_g interval input is actually
+required. Confirm whether filters must also be embedded on gene/region pages.
+Pagination/result totals beyond the current 10,000-result limit remain open.
 
 ---
 
 ## Summary: Required ES Fields
 
-| Field | ES Mapping | Export | GraphQL Query |
-|---|---|---|---|
-| `variant_id` | ✓ | ✓ | ✓ |
-| `rsids` | ✓ | ✓ | ✓ |
-| `gene_symbol` | ✓ | ✓ | partial (region-based) |
-| `consequence` | ✓ | ✓ | ✗ |
-| `impact` | ✓ | ✓ | ✗ |
-| `clinvar_sig` | ✓ | ✓ | ✗ |
-| `revel_score` | **✗** | **✗** | ✗ |
-| `cadd_score` | ✓ | ✓ | ✗ |
-| `chrom` + `pos` | ✓ | ✓ | ✓ (region) |
-| `gdna` (HGVS_g) | ✓ | ✓ | ✗ |
-| `hpo_ids` | **✗** | **✗** | ✗ |
-| `hpo_terms` | **✗** | **✗** | ✗ |
-| `ac_total` / `an_total` / `af_total` / `hom_count` | ✓ | ✓ | ✓ |
+| Field | Main implementation | Remaining boundary |
+|---|---|---|
+| `variant_id` | mapped/exported/queryable | sample carrier linkage missing |
+| `rsids` | mapped and supported by lookup code | annotated export does not populate rsids; fallback emits an empty array |
+| `gene_symbol` | direct term query and combined filters | sample carrier linkage missing |
+| `consequence` | exported and filterable | combined-term semantics need validation |
+| `impact` | exported and filterable | UI placement/acceptance |
+| `clinvar_sig` | exported and filterable | classification/review policy |
+| `revel_score` | exported and filterable | inclusive versus exclusive threshold |
+| `cadd_score` | exported and exposed on variant details | no dedicated CADD threshold query |
+| `chrom` + `pos` | exported and region-filterable | coordinate and pagination acceptance |
+| `gdna` (HGVS_g) | exported/displayed | specified naming and optional HGVS interval parsing |
+| `hpo_ids` / `hpo_terms` | sample columns can be annotated | no internal sample index/API/UI; versioned lookup remains |
+| `ac_total` / `an_total` / `af_total` / `hom_count` | exported and exposed | genotype-quality, ploidy, and cohort denominator acceptance |
 
-## Summary: Implementation Priorities
+## Summary: Remaining Priorities
 
-1. **Add `revel_score` to ES export** — needed for UC-5B, already in annotation spec.
-2. **Add combined filter queries to GraphQL** — gene + clinvar_sig, gene + consequence,
-   impact + region, multi-gene + filter with aggregations (UC-4, UC-5, UC-6).
-3. **Add direct `gene_symbol` term query** — simpler than region-based for UC-2, UC-4, UC-5, UC-6.
-4. **Add HPO fields to internal ES index** — needed for UC-3, requires pipeline + export changes.
-5. **Add sample-variant index or MT query path** — needed for UC-1, UC-2, UC-3 carrier lists
-   (internal deployment only).
-6. **Add browser UI filters** — ClinVar significance, consequence, impact, REVEL threshold.
+1. Build internal sample and carrier exports/indices and sample-linked queries.
+2. Add sample/carrier/HPO/report browser workflows for authenticated internal users.
+3. Validate metadata/report input, including prenatal and Unknown/None tokens;
+   see [SAMPLE_METADATA_SOURCE.md](SAMPLE_METADATA_SOURCE.md).
+4. Complete the versioned HPO lookup and agreed field naming/annotation requirements.
+5. Resolve search semantics, result completeness, and frequency definitions.
+6. Close the separate browser review findings and complete internal/full-cohort acceptance.
+
+Combined filters, REVEL export, direct gene-symbol queries, HPO import, and the
+existing annotation API field set must not be counted as wholly missing features.

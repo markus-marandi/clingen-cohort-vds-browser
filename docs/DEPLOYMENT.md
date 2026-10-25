@@ -3,9 +3,9 @@
 This document explains how to bring the current local/internal cohort browser up on `oligo-VM` and
 access it from your laptop over SSH. No firewall changes are needed.
 
-Production should not expose this patient-linked VM publicly. The public/browser VM should be a
-separate machine populated only with sanitized variant-level Elasticsearch documents generated from
-an explicit public export allowlist.
+The first release is GRCh37-only and internal-only. All authenticated internal users may
+see sample IDs. Public deployment and a separate public/browser VM are outside the
+current scope. This patient-linked VM must not be exposed publicly.
 
 ---
 
