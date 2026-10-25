@@ -36,8 +36,8 @@ const Wrapper = styled.div`
   }
 
   input {
-    height: 38px;
     min-width: 0;
+    height: 38px;
     border: 1px solid var(--border);
     border-left: none;
     border-top-left-radius: 0;

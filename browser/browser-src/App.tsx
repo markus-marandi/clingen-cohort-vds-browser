@@ -14,24 +14,24 @@ const Routes = lazy(() => import('./Routes'))
 
 const GlobalStyle = createGlobalStyle`
   :root {
-    --navy: #001A72;
-    --navy-80: #33488E;
-    --navy-60: #6676AA;
-    --navy-20: #CCD1E3;
-    --teal: #00CFB4;
+    --navy: #001a72;
+    --navy-80: #33488e;
+    --navy-60: #6676aa;
+    --navy-20: #ccd1e3;
+    --teal: #00cfb4;
     --teal-dark: #006659;
-    --teal-20: #CCF5F0;
-    --pink: #EF426F;
-    --pink-dark: #B71C45;
-    --pink-20: #FCD9E2;
-    --white: #FFFFFF;
-    --gray-50: #F7F8FB;
-    --gray-100: #E8EBF2;
-    --text: #001A72;
+    --teal-20: #ccf5f0;
+    --pink: #ef426f;
+    --pink-dark: #b71c45;
+    --pink-20: #fcd9e2;
+    --white: #fff;
+    --gray-50: #f7f8fb;
+    --gray-100: #e8ebf2;
+    --text: #001a72;
     --text-secondary: #444;
-    --border: #E0E3EE;
+    --border: #e0e3ee;
     --shadow-sm: 0 1px 3px rgba(0, 26, 114, 0.07);
-    --shadow-md: 0 8px 24px rgba(0, 26, 114, 0.10);
+    --shadow-md: 0 8px 24px rgba(0, 26, 114, 0.1);
   }
 
   html,
@@ -100,7 +100,7 @@ const GlobalStyle = createGlobalStyle`
     border: 1px solid var(--border);
     border-radius: 8px;
     background: var(--white);
-    color: #1A2140;
+    color: #1a2140;
     font-size: 13px;
   }
 
@@ -131,13 +131,13 @@ const GlobalStyle = createGlobalStyle`
   }
 
   [role='grid'] [role='columnheader'][aria-sort='ascending'] button::after {
-    color: var(--teal);
     content: ' ↑';
+    color: var(--teal);
   }
 
   [role='grid'] [role='columnheader'][aria-sort='descending'] button::after {
-    color: var(--teal);
     content: ' ↓';
+    color: var(--teal);
   }
 
   [role='grid'] .grid-row-stripe {
@@ -153,7 +153,7 @@ const GlobalStyle = createGlobalStyle`
   }
 
   table {
-    color: #1A2140;
+    color: #1a2140;
   }
 
   table thead th,
@@ -173,10 +173,10 @@ const GlobalStyle = createGlobalStyle`
   }
 `
 
-const scrollToAnchorOrStartOfPage = (location: any) => {
+export const scrollToAnchorOrStartOfPage = (location: any) => {
   if (location.hash) {
     setTimeout(() => {
-      const anchor = document.querySelector(`a${location.hash}`)
+      const anchor = document.getElementById(location.hash.slice(1))
       if (anchor) {
         anchor.scrollIntoView()
       } else {

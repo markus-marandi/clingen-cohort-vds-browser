@@ -16,8 +16,7 @@ const NAV_LINKS = [
 
 const Wrapper = styled.header`
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(245px, auto) minmax(280px, 520px) auto;
+  display: flex;
   gap: 22px;
   align-items: center;
   box-sizing: border-box;
@@ -34,7 +33,7 @@ const Wrapper = styled.header`
   }
 
   @media (max-width: 1050px) {
-    grid-template-columns: 1fr auto;
+    flex-wrap: wrap;
     gap: 14px;
     padding: 12px 20px;
   }
@@ -42,9 +41,15 @@ const Wrapper = styled.header`
 
 const LogoLink = styled(Link)`
   display: inline-flex;
+  flex: 0 1 auto;
   align-items: center;
-  min-width: 0;
+  min-width: 245px;
   gap: 12px;
+
+  @media (max-width: 1050px) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 `
 
 const LogoMark = styled(BrandMark)`
@@ -82,12 +87,15 @@ const Product = styled.span`
 `
 
 const NavSearch = styled.div`
-  min-width: 0;
+  flex: 0 1 auto;
+  min-width: 280px;
+  max-width: 520px;
 
   @media (max-width: 1050px) {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    flex: 1 1 100%;
     width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 `
 
@@ -111,8 +119,8 @@ const ToggleMenuButton = styled.button`
 
   @media (max-width: 1050px) {
     display: inline-flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
   }
 `
 
@@ -126,16 +134,22 @@ const Menu = styled.ul<{ $isExpanded: boolean }>`
   list-style: none;
 
   @media (max-width: 1050px) {
-    grid-column: 1 / -1;
-    display: ${(props) => (props.$isExpanded ? 'grid' : 'none')};
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    display: ${(props) => (props.$isExpanded ? 'flex' : 'none')};
+    flex: 1 1 100%;
+    flex-wrap: wrap;
     gap: 6px;
     width: 100%;
     height: auto;
+
+    li {
+      flex: 1 1 calc(16.66% - 5px);
+    }
   }
 
   @media (max-width: 680px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    li {
+      flex: 1 1 calc(50% - 3px);
+    }
   }
 `
 
@@ -148,7 +162,7 @@ const NavLink = styled(Link)<{ $isActive: boolean }>`
   color: ${(props) => (props.$isActive ? 'var(--teal)' : 'rgba(255, 255, 255, 0.76)')};
   font-size: 13px;
   font-weight: 600;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 
   &:hover {
     background: rgba(255, 255, 255, 0.08);

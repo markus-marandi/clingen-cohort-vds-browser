@@ -1,0 +1,1687 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Team Page has no unexpected changes 1`] = `
+.c14 {
+  color: #1173bb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.c14:visited,
+.c14:active {
+  color: #1173bb;
+}
+
+.c14:focus,
+.c14:hover {
+  text-decoration: underline;
+}
+
+.c0 {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 15px;
+  margin: 0 auto 40px;
+  font-size: 14px;
+}
+
+.c2 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid #ccc;
+  margin: 0.67em 0;
+  font-size: 14px;
+}
+
+.c3 {
+  margin: 0;
+}
+
+.c1 {
+  max-width: 1200px;
+  padding: 0 24px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.c1 p {
+  margin-bottom: 1em;
+  line-height: 1.5;
+}
+
+.c1 h1,
+.c1 h2,
+.c1 h3 {
+  color: var(--navy);
+  letter-spacing: 0;
+}
+
+.c1 h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.c1 h2 {
+  font-size: 22px;
+}
+
+.c4 {
+  padding-bottom: 1rem;
+}
+
+.c5 {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.c6 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+  padding: 1rem;
+  margin: 1rem auto;
+}
+
+.c15 {
+  content: '';
+  display: table;
+  width: 100%;
+  clear: both;
+}
+
+.c16 {
+  float: left;
+  width: 33.33%;
+}
+
+.c7 {
+  width: 100%;
+  padding-bottom: 2rem;
+}
+
+.c8 {
+  display: flex;
+}
+
+.c9 {
+  padding-right: 0.5rem;
+}
+
+.c10 {
+  width: 12rem;
+}
+
+.c11 {
+  padding-left: 2rem;
+  line-height: 1.5;
+  text-align: start;
+}
+
+.c12 {
+  font-weight: bold;
+}
+
+.c13 {
+  margin-top: 1rem;
+}
+
+.c17 {
+  line-height: 1.5;
+}
+
+.c17 ul {
+  padding-left: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+.c17 ul ul {
+  padding-left: 20px;
+  margin: 0.5em 0;
+}
+
+@media (max-width:900px) {
+  .c2 {
+    flex-direction: column;
+    align-items: center;
+    border-bottom: none;
+  }
+}
+
+@media (max-width:900px) {
+  .c3 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 0.5em;
+  }
+}
+
+@media screen and (max-width:600px) {
+  .c16 {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width:992px) {
+  .c8 {
+    display: block;
+    margin-bottom: 2em;
+  }
+}
+
+@media screen and (max-width:992px) {
+  .c9 {
+    margin-bottom: 1em;
+  }
+}
+
+@media screen and (max-width:992px) {
+  .c11 {
+    padding-left: 0;
+  }
+}
+
+<div
+  className="c0 c1"
+>
+  <div
+    className="c2"
+  >
+    <h1
+      className="c3"
+    >
+      The gnomAD Team
+    </h1>
+  </div>
+  <div
+    className="c4"
+  >
+    <div
+      className="c5"
+    >
+      <h2
+        id="gnomad-committee"
+      >
+        gnomAD Steering Committee
+      </h2>
+      <p>
+        The gnomAD Steering Committee (SC) consists of investigators with expertise in genomic sequencing, computational analysis, and rare disease genomics as well as key staff who are deeply involved with building and maintaining gnomAD.
+      </p>
+      <br />
+      <h3
+        id="co-directors"
+      >
+        gnomAD Co-Directors
+      </h3>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Mark J. Daly, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Mark J. Daly, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (MPI) is an Institute Member of the Broad Institute, co-director of the Broad’s Program in Medical and Population Genetics and the chair of the Analytic and Translational Genetics Unit (ATGU) at Massachusetts General Hospital. He has developed many genomic analysis tools and has extensive leadership in large-scale data science and genomic sequencing consortia. He is a PI of gnomAD, co-chair of the gnomAD council, and as a gnomAD Co-Director, holds shared responsibity for overseeing all activities.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Konrad Karczewski, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Konrad Karczewski, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is a Senior Computational Biologist in the Program in Medical and Population Genetics at the Broad Institute and Instructor at Massachusetts General Hospital. He has extensive experience in handling and analyzing the world’s largest datasets: he has been involved in processing and analysis of ExAC since its inception, designed and built the browser frameworks, and has led the analytic activities of the gnomAD v2 and v3 datasets. He contributes expertise on scalable data analysis as well as variant annotation methods. As a gnomAD Co-Director, he holds shared responsibity for overseeing all activities.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Heidi Rehm, Ph.D., FACMG,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Heidi Rehm, Ph.D., FACMG,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (MPI) is Co-Director of Medical and Population Genetics at the Broad Institute, Chief Genomics Officer at Massachusetts General Hospital (MGH) and Professor of Pathology at Harvard Medical School (HMS). She brings long-standing experience in genomic resource management, clinical sequencing, variant interpretation and gene discovery for rare disease. She is a PI of gnomAD, co-chair of the gnomAD council, and as a gnomAD Co-Director, holds shared responsibility for overseeing all activities.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Kaitlin Samocha, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Kaitlin Samocha, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is an Assistant Professor in the Center for Genomic Medicine of Massachusetts General Hospital and an Associated Scientist at the Broad Institute. The focus of her research career has been on developing methods and statistical tools to improve interpretation of genomic variation, particularly rare variation. She was involved in early stages of the creation and analysis of both ExAC and gnomAD, and contributes knowledge about modeling mutation rates and constraint metrics. As a gnomAD Co-Director, she holds shared responsibility for overseeing all activities.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3
+        id="steering-committee"
+      >
+        gnomAD Steering Committee
+      </h3>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Samantha Baxter, MS, LGC,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Samantha Baxter, MS, LGC,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a genetic counselor and Associate Director of Genetic and Genomic Data Sharing at the Broad Institute, where she leads a team of variant curators. She brings her operational, clinical, and leadership experience to her role as gnomAD’s scientific operations manager. She leads user feedback, sample acquisition, maintains regulatory compliance and manages collaborations for gnomAD.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Katherine Chao, BS,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Katherine Chao, BS,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Software Product Manager at the Broad Institute, where she works on methods development using gnomAD. She is the product owner for gnomAD and leads the production of future gnomAD releases and manages the roadmap for future work.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Julia Goodrich, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Julia Goodrich, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Computational Scientist in the Center for Genomic Medicine of Massachusetts General Hospital and an Associated Scientist at the Broad Institute. She works on developing methods for quality control and analysis of large-scale genomic datasets including gnomAD, and is technical lead for the production of gnomAD v3.1 and v4 releases.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Daniel G. MacArthur, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Daniel G. MacArthur, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is the Director of the Centre for Population Genomics, jointly based at the Garvan Institute and the Murdoch Children’s Research Institute in Australia, and a visiting researcher at the Broad Institute. He is the founding PI of ExAC and gnomAD and brings leadership in large-scale population genomics, genomic software development and gene discovery. He contributes both historical knowledge as well as ongoing work on loss-of-function variant curation, constraint metrics, and the inclusion of under-represented communities. 
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Benjamin Neale, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Benjamin Neale, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is Co-Director of Medical and Population Geneticsthe Broad Institute and the Director of Genetics in the Stanley Center for Psychiatric Research. He is an Associate Professor at MGH and HMS. He directs the Genomics of Public Health Initiative and has extensive expertise in the development of statistical methods for genomic studies and open source software for the analysis of large-scale genomic data. He leads the deployment of the Hail Platform for generating gnomAD callsets.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Anne O'Donnell-Luria, M.D., Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Anne O'Donnell-Luria, M.D., Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is an Associate Member of the Broad Institute and Assistant Professor and Physician in the Division of Genetics and Genomics at Boston Children’s Hospital, Harvard Medical School. Her research focuses on rare disease variant and gene discovery. She has been a member of the gnomAD analysis team since January 2015, providing guidance in the development of gnomAD and browser features for clinical variant interpretation and use in medical genetics.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Matthew Solomonson, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Matthew Solomonson, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is an Associate Director of Data Visualization at the Broad Institute who develops web applications for exploring large-scale genomic datasets. He was the initial developer of the gnomAD browser and led efforts to modernize the browser’s technology stack using scalable cloud infrastructure and engineering approaches for sustainable user interface development. He now oversees the gnomAD browser framework and a team of developers working on the infrastructure that supports multiple biobank and disease cohort sequencing projects.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Michael Talkowski, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Michael Talkowski, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (co-I) is an Institute Member of the Broad Institute and Associate Professor of Neurology in the Center for Genomic Medicine of Massachusetts General Hospital and Harvard Medical School. Dr. Talkowski has directed the prior structural variant studies in gnomAD, leads the Broad SV team and multiple SV genomics initiatives, and co-directs autism and neurodevelopmental genomics consortia. He oversees the gnomAD SV work and contributes to constraint and dosage analyses.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c5"
+    >
+      <h2
+        id="scientific-advisory-board"
+      >
+        gnomAD's Scientific Advisory Board
+      </h2>
+      <p>
+        Our Scientific Advisory Board, consists of a geographically and ethnically diverse set of individuals with backgrounds spanning genomics research, clinical service and ELSI work. The role of the gnomAD SAB is to provide guidance on the development of our resource and how we can best and most equitably serve the scientific and clinical communities.
+      </p>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Shawneequa Callier, J.D., MA,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Shawneequa Callier, J.D., MA,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is an Associate Professor in the Department of Clinical Research and Leadership at the George Washington University School of Medicine and Health Sciences (SMHS). Professor Callier teaches courses in bioethics and serves as a Special Volunteer at the Center for Research on Genomics and Global Health, National Human Genome Research Institute, National Institutes of Health. On several occasions in the past, Professor Callier taught Genetics and the Law as an adjunct at GW Law.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Adam Frankish, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Adam Frankish, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is the Manual Genome Annotation Coordinator at the European Bioinformatics Institute. He has more than 20 years experience leading the creation of reference genome annotation, initially as part of the Human Genome Project and more recently as part the the GENCODE consortium. His group creates the foundational Ensembl/GENCODE reference genome annotation for the human and mouse genomes in which all features are identified and classified with high accuracy based on biological evidence, and then freely released for the benefit of biomedical research and genome interpretation.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Andrés Moreno Estrada, M.D, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Andrés Moreno Estrada, M.D, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Mexican population geneticist deeply interested in molecular evolution and its implications in human population history and medical genomics. He is the PI of the Human Evolutionary and Population Genomics Laboratory at the Advanced Genomics Unit (UGA-Langebio). As a postdoctoral fellow with Dr. Carlos Bustamante and research associate at Stanford University, his work integrated genomics, evolution and precision medicine in many different projects involving large collections of populations, in particular from the Americas and the Pacific. His group at UGA-Langebio is interested in human evolution, adaptation, and population history as well as the biomedical implications of human genetic diversity in underserved populations of the world.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Nicky Mulder, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Nicky Mulder, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                heads the Computational Biology Division at the University of Cape Town, and leads H3ABioNet, a large Pan African Bioinformatics Network of 27 institutions in 17 countries. H3ABioNet aims to develop bioinformatics capacity to enable genomic data analysis on the continent. She is also co-PI of a Sickle Cell Data Coordinating Centre. At UCT her research focuses on genetic determinants of susceptibility to disease, African genome variation, and microbial genomics and infectious diseases from both the host and pathogen perspectives. Her group provides bioinformatics services and develops new algorithms for the analysis of complex African genetic data. She co-chairs international committees on Bioinformatics education and sits on a number of Scientific Advisory Boards for African and International projects.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Yuki Okada, M.D., Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Yuki Okada, M.D., Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a rheumatologist, a statistician, and a bioinformatician.  He is currently a Professor in the department of Statistical Genetics at Osaka University 2016 and in the department of Genome Informatics at the University of Tokyo, as well as a team leader at the Laboratory for Systems Genetics, RIKEN Center for Integrative Medical Sciences. Dr. Yukinori Okada specializes in statistical genetics with a focus on elucidation of mechanisms where genetic variants in the populations affect clinical phenotypes of individuals, especially for autoimmune diseases and clinical biomarkers. Through active collaborative partnerships among the researchers in the field of human genetics, he has conducted genome-wide association studies (GWAS) of human complex traits and identified &gt;5,000 novel genetic risk loci.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Tina Pesaran, MS, CGC,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Tina Pesaran, MS, CGC,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is the Senior Director of the Genomic Sciences and Curation Program at Ambry Genetics, leading a multi-disciplinary team of scientists and curators focused on gene-disease validity, complex variant assessment and advancing variant assessment standards. Her current research interests include gene and disease specific classification nuances and the improvement of variant classification using scalable functional and computational methods. She has co-authored several peer-reviewed publications related to qualitative and quantitative approaches to variant classification and the practice of variant classification. Ms. Pesaran is a member of the ClinGen Sequence Variant Interpretation Working Group, which provides support to variant curation expert panels developing gene-specific modifications to the ACMG/AMP guidelines. She is also a member of several ClinGen expert groups.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Sharon Plon, M.D., Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Sharon Plon, M.D., Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a board-certified medical geneticist and a longstanding cancer genetics researcher, including leading to the discovery of new cancer susceptibility genes and the implementation of genomic testing in medicine. Dr. Plon holds the Dan L. Duncan Comprehensive Cancer Center Professorship at Baylor College of Medicine in the Departments of Pediatrics/Hematology-Oncology, Molecular and Human Genetics and Human Genome Sequencing Center. Dr. Plon has been at Baylor College of Medicine for over 25 years and founded and continues to direct the Cancer Genetics Clinic at Texas Children’s Hospital. Dr. Plon served on the National Advisory Council for Human Genome Research of the National Institutes of Health (NIH) and served on the Board of Directors of the American Society of Human Genetics. Since 2013, Dr. Plon has served as one of the Principal Investigators of the Clinical Genome (ClinGen) Resource and co-chairs the ClinGen hereditary cancer effort. She also currently co-chairs the germline reporting effort of the national NCI/COG Pediatric MATCH Precision Oncology trial.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Aaron Quinlan, Ph.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Aaron Quinlan, Ph.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is an Endowed Professor of Human Genetics and Biomedical Informatics with a history of innovation in computational genomics. The Quinlan laboratory develops and applies software and new algorithms to study the mechanisms, patterns, and consequences of genome mutation in the context of rare human disease and tumor evolution. Their tools are used daily by thousands of researchers worldwide.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Heiko Runz, M.D.,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Heiko Runz, M.D.,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                Heiko Runz, M.D., is the Vice President for Neuroscience/Genetics at insitro. He is a medical geneticist and basic researcher with a mission to implement genetics at the core of future medicine. His research focus is on translating genetic discoveries into functional insights and early-stage drug development programs with a focus on CNS diseases. Dr. Runz has a broad interdisciplinary background that tightly integrates technological innovation and applied medicine.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br />
+    <div
+      className="c5"
+    >
+      <h2
+        id="gnomad-staff"
+      >
+        Staff
+      </h2>
+      <p>
+        Our staff includes individuals with a variety of backgrounds and skills including software development, computational biology, project management, and clinical genetics. The team works to create the gnomAD datasets, develop and support the browser, answer all gnomAD emails, and handle all the regulatory requirements, amongst many other roles.
+      </p>
+      <br />
+      <h3
+        id="website-staff"
+      >
+        Website
+      </h3>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Matt Solomonson"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Matt Solomonson
+              </span>
+              <span
+                className="c13"
+              >
+                , in addition to being a member of the
+                <a
+                  className="c14"
+                  href="#steering-committee"
+                >
+                   gnomAD Steering Committee
+                </a>
+                , 
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                leads the gnomAD Browser team.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Josh Nadeau"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Josh Nadeau
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                (he/him) is a senior software engineer with a focus on data engineering. He has worked at tech companies of various sizes and stages on data platform and infrastructure teams.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Riley Grant"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Riley Grant
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Software Engineer at the Broad Institute, where he works on the gnomAD Browser. He's interested in encouraging collaboration through open source software and open access datasets.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Konrad Karczewski"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Konrad Karczewski
+              </span>
+              <span
+                className="c13"
+              >
+                , in addition to being a
+                <a
+                  className="c14"
+                  href="#co-directors"
+                >
+                   co-director of gnomAD
+                </a>
+                , 
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                works on the gnomAD browser.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Ben Weisburd"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Ben Weisburd
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Data Scientist at the Broad Institute, where he works on short tandem repeats and other underexplored variant types in gnomAD and rare disease cohorts.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <h3
+        id="production-staff"
+      >
+        Production
+      </h3>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Katherine Chao"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Katherine Chao
+              </span>
+              <span
+                className="c13"
+              >
+                , in addition to being a member of the
+                <a
+                  className="c14"
+                  href="#steering-committee"
+                >
+                   gnomAD Steering Committee
+                </a>
+                , 
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is the product owner for gnomAD.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Julia Goodrich, Ph.D."
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Julia Goodrich, Ph.D.
+              </span>
+              <span
+                className="c13"
+              >
+                , in addition to being a member of the
+                <a
+                  className="c14"
+                  href="#steering-committee"
+                >
+                   gnomAD Steering Committee
+                </a>
+                , 
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Computational Scientist, and was the technical lead for the production of gnomAD v3.1 and v4 releases.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Daniel Marten, MS,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Daniel Marten, MS,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is an Associate Computational Scientist working jointly between the gnomAD methods team and Dr. O’Donnell-Luria’s Lab.  His current research projects include investigating unannotated genes - genes with proteins which are translated in tissue yet are not included in large protein databases - and the relationship between gene length, age, and constraint.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Kristen Laricchia, MS,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Kristen Laricchia, MS,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Data Scientist at the Broad Institute, where she works on developing methods for quality control and analysis of the Genome Aggregation Database (gnomAD) and rare disease cohorts.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Wenhan Lu, MS,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Wenhan Lu, MS,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Computational Associate at the Broad Institute. She works on developing methods and pipelines to process large-scale sequencing callsets, including gnomAD and CCDG. Her work also focuses on developing statistical methods to help interpret the mechanisms of rare variants.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Mike Wilson, BS,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Mike Wilson, BS,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is a Senior Associate Computational Scientist at the Broad institute, and is the technical lead for the gnomAD v5 release.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      <h3
+        id="operations-staff"
+      >
+        Operations
+      </h3>
+      <div
+        className="c6"
+      >
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Samantha Baxter, MS, LGC"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Samantha Baxter, MS, LGC
+              </span>
+              <span
+                className="c13"
+              >
+                , in addition to being a member of the
+                <a
+                  className="c14"
+                  href="#steering-committee"
+                >
+                   gnomAD Steering Committee
+                </a>
+                , 
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is gnomAD's scientific operations manager.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          className="c7"
+        >
+          <div
+            className="c8"
+          >
+            <div
+              className="c9"
+            >
+              <img
+                alt="Headshot of Christine Stevens, MA, PMP,"
+                className="c10"
+              />
+            </div>
+            <div
+              className="c11"
+            >
+              <span
+                className="c12"
+              >
+                Christine Stevens, MA, PMP,
+              </span>
+              <span
+                className="c13"
+              >
+                 
+                is Associate Director of Scientific Projects at the Broad Institute.  She possesses a diverse knowledge of Broad infrastructure, genomic technologies, funding regulations, compliance and genetic analyzes, and is well versed in project management, high-throughput processes, and large-scale data.  Her expertise led to a systemic way of curating data going into the gnomAD dataset.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c5"
+    >
+      <h2
+        id="gnomad-contributors"
+      >
+        Contributors
+      </h2>
+      <div
+        className="c6"
+      >
+        <div
+          className="c15"
+        >
+          <div
+            className="c16"
+          >
+            <h3
+              id="data-generation-contributors"
+            >
+              Data Generation
+            </h3>
+            <div
+              aria-labelledby="data-generation-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- **Lee Lichtenstein**
+- Sam Bryant
+- Kristian Cibulskis
+- Miguel Covarrubias
+- Christopher Llanwarne
+- Sam Novod
+- Jonn Smith
+",
+                }
+              }
+            />
+            <br />
+            <h3
+              id="broad-genomics-platform"
+            >
+              Broad Genomics Platform
+            </h3>
+            <div
+              aria-labelledby="broad-genomics-platform"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- Stacey Gabriel
+- Steven Ferriera
+",
+                }
+              }
+            />
+          </div>
+          <div
+            className="c16"
+          >
+            <h3
+              id="structural-variation-contributors"
+            >
+              Structural Variants
+            </h3>
+            <div
+              aria-labelledby="structural-variation-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- **Ryan Collins**
+- **Harrison Brand**
+- Eric Banks
+- Ted Brookings
+- Jack Fu
+- Laura Gauthier
+- Chelsea Lowther
+- Tom Lyons
+- Sam Novod
+- Ted Sharpe
+- Mark Walker
+- Harold Wang
+- Christopher Whelan
+- Xuefang Zhao
+",
+                }
+              }
+            />
+            <br />
+            <h3
+              id="mitochondrial-variants-contributors"
+            >
+              Mitochondrial Variants
+            </h3>
+            <div
+              aria-labelledby="mitochondrial-variants-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- Sarah E. Calvo
+- Nicole Lake
+- David Benjamin
+- Kiran Garimella
+- Monkol Lek
+- Vamsi K. Mootha
+- Sebastian Schoenherr
+",
+                }
+              }
+            />
+          </div>
+          <div
+            className="c16"
+          >
+            <h3
+              id="ethics-contributors"
+            >
+              Production and Analysis
+            </h3>
+            <div
+              aria-labelledby="production-and-analysis-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- Jeremy Guez
+- Wenhan Lu
+- Jialan Ma
+- Ruchit Panchal
+- Patrick Schultz
+- Moriel Singer-Berk
+- Chris Vittal
+",
+                }
+              }
+            />
+            <br />
+            <h3
+              id="compliance-contributors"
+            >
+              Compliance
+            </h3>
+            <div
+              aria-labelledby="compliance-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- **Susie Weisenburger**
+- Jack Shultz
+- Felecia Cerrato
+- Caroline Cusick
+",
+                }
+              }
+            />
+            <br />
+            <h3
+              id="tandem-repeats-contributors"
+            >
+              Tandem Repeats
+            </h3>
+            <div
+              aria-labelledby="tandem-repeats-contributors"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- **Ben Weisburd**
+- Nehir Edibe Kurtas
+- Phil Darnowsky
+- Nick Watts
+- Grace VanNoy
+",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="c5"
+    >
+      <h2
+        id="gnomad-alumni"
+      >
+        Alumni
+      </h2>
+      <div
+        className="c6"
+      >
+        <div
+          className="c15"
+        >
+          <div>
+            <div
+              aria-labelledby="alumni"
+              className="c17"
+              dangerouslySetInnerHTML={
+                {
+                  "__html": "- Elissa Alarmani (Browser)
+- Jessica Alföldi (Operations)
+- Irina Armean (Production and analysis)
+- Eric Banks (Data Generation, Structural variants / Copy number variants, Mitochondrial variants, Production and analysis)
+- Louis Bergelson (Data generation)
+- Ted Brookings (Structural variants / Copy number variants)
+- Sinéad Chapman (Operations)
+- Siwei Chen (Production and analysis)
+- Ryan Collins (Structural variants / Copy number variants, Production and analysis)
+- Kristen Connolly (Genomic platform)
+- Beryl Cummings (Production and analysis)
+- Stacey Donnelly (Compliance)
+- James Emery (Mitochondrial variants)
+- Eleina England (Production and analysis)
+- Emily Evangelista (Production and analysis)
+- Yossi Farjoun (Data generation)
+- Kelly Flannagan (Compliance)
+- Laurent Francioli (Production and analysis)
+- Jack Fu (Structural variants / Copy number variants)
+- Laura Gauthier (Data Generation, Structural variants / Copy number variants, Mitochondrial variants, Production and analysis)
+- Jeff Gentry (Data generation)
+- Sanna Gudmundsson (Production and analysis)
+- Namrata Gupta (Compliance)
+- Andrea Haessly (Mitochondrial variants)
+- Qin He (Production and analysis)
+- Steve Jahl (Browser)
+- Thibault Jeandet (Data generation)
+- Diane Kaplan (Data generation)
+- Dan King (Production - Hail)
+- Zan Koenig (Production and analysis)
+- Trevyn Langsford (Data generation)
+- Sam Lee (Data generation)
+- Monkol Lek (Production and analysis)
+- Emily Lipscomb (Compliance)
+- Chelsea Lowther (Structural variants / Copy number variants)
+- Tom Lyons (Structural variants / Copy number variants)
+- Alicia Martin (Production and analysis)
+- Eric Minikel (Production and analysis)
+- Ruchi Munshi (Data generation)
+- Nikelle Petrillo (Data generation)
+- William Phu (Production and analysis)
+- Tim Poterba (Production - Hail)
+- Dan Rhodes (Production and analysis)
+- David Roazen (Data Generation)
+- Valentin Ruano-Rubio (Data Generation)
+- Nareh Sahakian (Data generation)
+- Andrea Saltzman (Compliance)
+- Molly Schleicher (Compliance)
+- Eleanor Seaby (Production and analysis)
+- Cotton Seed (Production - Hail)
+- Megan Shand (Data Generation, Mitochondrial variants)
+- Ted Sharpe (Structural variants / Copy number variants)
+- Moriel Singer-Berk (Production and analysis)
+- Rachel Son (Production and analysis)
+- Jose Soto (Data generation)
+- Kat Tarasova (Operations)
+- Grace Tiao (Product owner, Production and analysis)
+- Kathleen Tibbetts (Data generation)
+- Charlotte Tolonen (Data generation)
+- Grace VanNoy (Tandem repeats)
+- Chris Vittal (Production - Hail)
+- Gordon Wade (Data generation, Structural variants)
+- Arcturus Wang (Production - Hail)
+- Qingbo Wang (Production and analysis)
+- Harold Wang (Structural variants / Copy number variants)
+- James Ware (Production and analysis)
+- Nick Watts (Browser, Tandem repeats)
+- Nicola Whiffin (Production and analysis)
+- Lauren Witzgall (Operations)
+- Mary Yohannes (Production and analysis)
+",
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

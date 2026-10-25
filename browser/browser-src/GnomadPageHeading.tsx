@@ -62,8 +62,8 @@ const PageHeadingText = styled.h1`
   color: var(--navy);
   font-size: 34px;
   font-weight: 700;
-  letter-spacing: 0;
   line-height: 1.1;
+  letter-spacing: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 `
@@ -78,8 +78,8 @@ const PageControlsWrapper = styled.div`
   font-weight: 600;
 
   @media (max-width: 900px) {
-    width: 100%;
     justify-content: flex-start;
+    width: 100%;
   }
 `
 

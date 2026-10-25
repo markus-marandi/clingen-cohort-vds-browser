@@ -29,10 +29,10 @@ const Lead = styled.p`
 `
 
 const Form = styled.form`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  align-items: end;
+  align-items: flex-end;
   padding: 20px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -41,6 +41,7 @@ const Form = styled.form`
 
 const Field = styled.label`
   display: flex;
+  flex: 1 1 200px;
   flex-direction: column;
   gap: 6px;
   color: var(--navy);
@@ -314,9 +315,9 @@ const CohortFilterPage = () => {
       <DocumentTitle title="Filter variants" />
       <Heading>Filter cohort variants</Heading>
       <Lead>
-        Combine gene, ClinVar significance, consequence/impact, and REVEL thresholds
-        (use cases UC-4, UC-5, UC-6). Enter multiple genes (comma or space separated) to
-        get a per-gene panel summary.
+        Combine gene, ClinVar significance, consequence/impact, and REVEL thresholds (use cases
+        UC-4, UC-5, UC-6). Enter multiple genes (comma or space separated) to get a per-gene panel
+        summary.
       </Lead>
 
       <Form onSubmit={onSubmit}>

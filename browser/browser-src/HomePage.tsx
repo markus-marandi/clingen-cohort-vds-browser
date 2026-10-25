@@ -51,8 +51,8 @@ const Heading = styled.h1`
   color: var(--navy);
   font-size: clamp(28px, 5vw, 32px);
   font-weight: 700;
-  letter-spacing: 0;
   line-height: 1.18;
+  letter-spacing: 0;
 `
 
 const Lead = styled.p`
@@ -99,8 +99,8 @@ const HintLink = styled(Link)`
 `
 
 const QuickLinks = styled.nav`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   width: 100%;
   max-width: 720px;
@@ -109,6 +109,7 @@ const QuickLinks = styled.nav`
 
 const QuickLink = styled(Link)`
   display: flex;
+  flex: 1 0 132px;
   flex-direction: column;
   align-items: center;
   gap: 8px;
@@ -119,8 +120,7 @@ const QuickLink = styled(Link)`
   background: var(--white);
   color: var(--navy);
   text-decoration: none;
-  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease,
-    transform 120ms ease;
+  transition: all 0.12s ease;
 
   &:hover {
     border-color: var(--teal);
@@ -157,10 +157,10 @@ const Divider = styled.div`
 
   &::before,
   &::after {
+    content: '';
     flex: 1;
     height: 1px;
     background: var(--border);
-    content: '';
   }
 `
 
@@ -188,22 +188,25 @@ const ExamplePill = styled(Link)`
 `
 
 const Stats = styled.section`
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex: 0.9 1 0;
+  flex-wrap: wrap;
   gap: 1px;
   overflow: hidden;
   width: 100%;
-  margin: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
+  margin: 0;
   background: var(--border);
 
   @media (max-width: 420px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 `
 
 const Stat = styled.div`
+  flex: 1 1 45%;
+  min-width: 0;
   padding: 22px 18px;
   background: var(--gray-50);
   text-align: center;
@@ -226,19 +229,20 @@ const StatLabel = styled.div`
 `
 
 const SummaryPanel = styled.section`
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);
+  display: flex;
   gap: 22px;
   align-items: stretch;
   max-width: 1040px;
   margin: 56px auto 0;
 
   @media (max-width: 820px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 `
 
 const Chart = styled.div`
+  flex: 1.1 1 280px;
+  min-width: 0;
   padding: 20px;
   border: 1px solid var(--border);
   border-left: 4px solid var(--teal);
@@ -254,17 +258,33 @@ const ChartTitle = styled.h2`
 `
 
 const BarRow = styled.div`
-  display: grid;
-  grid-template-columns: minmax(110px, 1fr) minmax(120px, 2fr) minmax(56px, auto);
+  display: flex;
   gap: 10px;
   align-items: center;
   margin-top: 10px;
   color: var(--text-secondary);
   font-size: 12px;
 
+  > :first-child {
+    flex: 1 0 110px;
+  }
+
+  > :nth-child(2) {
+    flex: 2 0 120px;
+  }
+
+  > :last-child {
+    min-width: 56px;
+  }
+
   @media (max-width: 520px) {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 4px;
+
+    > * {
+      flex: 0 0 auto;
+    }
   }
 `
 
@@ -275,16 +295,21 @@ const BarTrack = styled.div`
   background: var(--navy-20);
 `
 
+const toneColor = (tone: 'teal' | 'pink' | 'navy') => {
+  if (tone === 'pink') {
+    return 'var(--pink)'
+  }
+  if (tone === 'navy') {
+    return 'var(--navy)'
+  }
+  return 'var(--teal)'
+}
+
 const BarFill = styled.div<{ $width: number; $tone: 'teal' | 'pink' | 'navy' }>`
   width: ${(props) => props.$width}%;
   height: 100%;
   border-radius: 999px;
-  background: ${(props) =>
-    props.$tone === 'pink'
-      ? 'var(--pink)'
-      : props.$tone === 'navy'
-      ? 'var(--navy)'
-      : 'var(--teal)'};
+  background: ${(props) => toneColor(props.$tone)};
 `
 
 type CohortSummaryBucket = {
@@ -299,6 +324,16 @@ type CohortSummary = {
   sample_count: number | null
   clinvar_count: number | null
   consequence_counts: CohortSummaryBucket[]
+}
+
+const consequenceTone = (index: number) => {
+  if (index === 1) {
+    return 'pink' as const
+  }
+  if (index === 2) {
+    return 'navy' as const
+  }
+  return 'teal' as const
 }
 
 const formatNumber = (value: number | null | undefined) => {
@@ -450,7 +485,7 @@ export default () => {
               <span>{bucket.label}</span>
               <BarTrack>
                 <BarFill
-                  $tone={index === 1 ? 'pink' : index === 2 ? 'navy' : 'teal'}
+                  $tone={consequenceTone(index)}
                   $width={(bucket.count / maxConsequenceCount) * 100}
                 />
               </BarTrack>

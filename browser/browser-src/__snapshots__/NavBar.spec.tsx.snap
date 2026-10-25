@@ -1,0 +1,489 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavBar has no unexpected changes 1`] = `
+.c9 {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  height: calc(2em + 2px);
+  padding: 0.375em 1.5em 0.375em 0.75em;
+  border-color: #6c757d;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 0.25em;
+  background-image: url('data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7');
+  background-position: center right;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1.25;
+  outline: none;
+}
+
+.c9:focus {
+  box-shadow: 0 0 0 0.2em rgba(66,139,202,0.5);
+}
+
+.c10 {
+  background-image: none;
+}
+
+.c8 {
+  height: calc(2em + 2px);
+  padding: 0.375em 1.5em 0.375em 0.75em;
+  border: 1px solid #6c757d;
+  border-radius: 0.25em;
+  appearance: none;
+  background-image: url('data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7');
+  background-position: center right;
+  background-repeat: no-repeat;
+  font-size: 1em;
+  line-height: 1.25;
+}
+
+.c8:focus {
+  outline: none;
+  border-color: rgb(70,130,180);
+  box-shadow: 0 0 0 0.2em rgba(70,130,180,0.5);
+}
+
+.c7 {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+}
+
+.c7 >span {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.c7 select {
+  flex: 0 0 auto;
+  min-width: 124px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  background-color: #fff;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.c7 input {
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.c7 input:focus,
+.c7 select:focus {
+  position: relative;
+  z-index: 1;
+  border-color: var(--teal)!important;
+  box-shadow: 0 0 0 3px rgba(0,207,180,0.18)!important;
+}
+
+.c0 {
+  position: relative;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 66px;
+  padding: 0 32px;
+  border-bottom: 2px solid rgba(0,207,180,0.42);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.c0 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.c1 {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 245px;
+  gap: 12px;
+}
+
+.c2 {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  padding: 3px;
+  border-radius: 50%;
+  background: var(--white);
+  object-fit: contain;
+}
+
+.c3 {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.16;
+}
+
+.c4 {
+  overflow: hidden;
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c5 {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.c6 {
+  flex: 0 1 auto;
+  min-width: 280px;
+  max-width: 520px;
+}
+
+.c11 {
+  display: none;
+  width: 40px;
+  height: 36px;
+  border: 1px solid rgba(255,255,255,0.32);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: var(--white);
+  cursor: pointer;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.c11:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0,207,180,0.22);
+}
+
+.c12 {
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.c13 {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px;
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.12s ease,color 0.12s ease,border-color 0.12s ease;
+}
+
+.c13:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--white);
+}
+
+@media (max-width:680px) {
+  .c7 {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .c7 select,
+  .c7 input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .c7 input {
+    margin-top: 6px;
+  }
+
+  .c7 >span {
+    width: 100%;
+  }
+}
+
+@media (max-width:1050px) {
+  .c0 {
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 12px 20px;
+  }
+}
+
+@media (max-width:1050px) {
+  .c1 {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+@media (max-width:1050px) {
+  .c6 {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width:1050px) {
+  .c11 {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media (max-width:1050px) {
+  .c12 {
+    display: none;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    height: auto;
+  }
+
+  .c12 li {
+    flex: 1 1 calc(16.66% - 5px);
+  }
+}
+
+@media (max-width:680px) {
+  .c12 li {
+    flex: 1 1 calc(50% - 3px);
+  }
+}
+
+@media (max-width:1050px) {
+  .c13 {
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+<header
+  className="c0"
+>
+  <a
+    className="c1"
+    href="/"
+    onClick={[Function]}
+  >
+    <img
+      alt="Tartu Ülikooli Kliinikum"
+      className="c2"
+      src="test-file-stub"
+    />
+    <span
+      className="c3"
+    >
+      <span
+        className="c4"
+      >
+        Tartu Ülikooli Kliinikum
+      </span>
+      <span
+        className="c5"
+      >
+        Variant Browser
+      </span>
+    </span>
+  </a>
+  <div
+    className="c6"
+  >
+    <div
+      className="c7"
+      width="100%"
+    >
+      <select
+        className="c8"
+        onChange={[Function]}
+        value="cohort"
+      >
+        <optgroup
+          label="GRCh38"
+        >
+          <option
+            value="gnomad_r4"
+          >
+            gnomAD v4.1.2
+          </option>
+          <option
+            value="gnomad_r3"
+          >
+            gnomAD v3.1.2
+          </option>
+          <option
+            value="gnomad_sv_r4"
+          >
+            gnomAD SVs v4.1.0
+          </option>
+          <option
+            value="gnomad_cnv_r4"
+          >
+            gnomAD CNVs v4.1.0
+          </option>
+        </optgroup>
+        <optgroup
+          label="GRCh37"
+        >
+          <option
+            value="cohort"
+          >
+            Tartu University Hospital
+          </option>
+          <option
+            value="gnomad_r2_1"
+          >
+            gnomAD v2.1.1
+          </option>
+          <option
+            value="gnomad_sv_r2_1"
+          >
+            gnomAD SVs v2.1
+          </option>
+          <option
+            value="exac"
+          >
+            ExAC
+          </option>
+        </optgroup>
+      </select>
+      <span
+        style={
+          {
+            "flexGrow": 1,
+          }
+        }
+      >
+        <div
+          style={
+            {
+              "display": "inline-block",
+              "width": "100%",
+            }
+          }
+        >
+          <input
+            aria-autocomplete="list"
+            aria-expanded={false}
+            autoComplete="off"
+            className="c9 c10"
+            data-testid="searchbox-input"
+            hasResults={false}
+            id="navbar-search"
+            onBlur={[Function]}
+            onChange={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            placeholder="Gene, variant or region"
+            role="combobox"
+            value=""
+          />
+        </div>
+      </span>
+    </div>
+  </div>
+  <button
+    aria-expanded={false}
+    aria-label="Toggle navigation"
+    className="c11"
+    onClick={[Function]}
+  >
+    ☰
+  </button>
+  <ul
+    className="c12"
+  >
+    <li>
+      <a
+        className="c13"
+        href="/filter"
+        onClick={[Function]}
+      >
+        Filter
+      </a>
+    </li>
+    <li>
+      <a
+        className="c13"
+        href="/about"
+        onClick={[Function]}
+      >
+        About
+      </a>
+    </li>
+    <li>
+      <a
+        className="c13"
+        href="/data"
+        onClick={[Function]}
+      >
+        Data
+      </a>
+    </li>
+    <li>
+      <a
+        className="c13"
+        href="/publications"
+        onClick={[Function]}
+      >
+        Publications
+      </a>
+    </li>
+    <li>
+      <a
+        className="c13"
+        href="/stats"
+        onClick={[Function]}
+      >
+        Stats
+      </a>
+    </li>
+    <li>
+      <a
+        className="c13"
+        href="/help"
+        onClick={[Function]}
+      >
+        Help
+      </a>
+    </li>
+  </ul>
+</header>
+`;

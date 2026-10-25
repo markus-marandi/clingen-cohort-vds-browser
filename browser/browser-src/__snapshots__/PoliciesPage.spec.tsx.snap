@@ -1,0 +1,345 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Policies Page has no unexpected changes 1`] = `
+.c0 {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 15px;
+  margin: 0 auto 40px;
+  font-size: 14px;
+}
+
+.c3 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid #ccc;
+  margin: 0.67em 0;
+  font-size: 14px;
+}
+
+.c4 {
+  margin: 0;
+}
+
+.c10 {
+  position: absolute;
+  transform: translate(-15px,calc(50% - 0.5em));
+  display: flex;
+  align-items: center;
+  width: 15px;
+  height: 1em;
+  visibility: hidden;
+  vertical-align: middle;
+}
+
+.c7 {
+  position: relative;
+}
+
+.c7 :hover .c9 {
+  visibility: visible;
+}
+
+.c1 {
+  max-width: 1200px;
+  padding: 0 24px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.c1 p {
+  margin-bottom: 1em;
+  line-height: 1.5;
+}
+
+.c1 h1,
+.c1 h2,
+.c1 h3 {
+  color: var(--navy);
+  letter-spacing: 0;
+}
+
+.c1 h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.c1 h2 {
+  font-size: 22px;
+}
+
+.c5 {
+  --code-background-color: #eef0f3;
+  font-size: 16px;
+}
+
+.c5 h1,
+.c5 h2,
+.c5 h3 {
+  font-weight: bold;
+}
+
+.c5 h1 {
+  font-size: 2em;
+}
+
+.c5 h2 {
+  font-size: 1.5em;
+}
+
+.c5 p {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.c5 a {
+  color: #428bca;
+  text-decoration: none;
+}
+
+.c5 img {
+  max-width: 100%;
+}
+
+.c5 blockquote {
+  margin: 0 0 0 10px;
+  font-size: 14px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.c5 code {
+  padding: 0.15em 0.35em;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 0.3em;
+  background: var(--code-background-color);
+  font-family: 'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  font-size: 0.9em;
+}
+
+.c5 pre {
+  overflow-x: auto;
+  padding: 1em;
+  border: 1px solid rgba(0,0,0,0.1);
+  margin: 1.25em 0;
+  border-radius: 0.4em;
+  background: var(--code-background-color);
+  line-height: 1.5;
+}
+
+.c5 pre code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 0.875em;
+}
+
+.c5 ol,
+.c5 ul {
+  padding-left: 20px;
+  margin: 1em 0;
+}
+
+.c5 li {
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+.c5 table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.c5 td {
+  padding: 0.5em 10px 0.5em 0;
+  border-bottom: 1px solid #ccc;
+  font-weight: normal;
+  line-height: 1.6;
+  text-align: left;
+}
+
+.c5 th {
+  padding: 0.5em 10px 0.5em 0;
+  border-bottom: 1px solid #000;
+  background-position: center right;
+  background-repeat: no-repeat;
+  font-weight: bold;
+  line-height: 1.6;
+}
+
+.c2 h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.c2 h2:not(:first-child) {
+  padding-top: 1.5rem;
+}
+
+.c6 p {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.c6 a {
+  color: #428bca;
+  text-decoration: none;
+}
+
+.c8 {
+  margin-top: 2.5rem;
+}
+
+@media (max-width:900px) {
+  .c3 {
+    flex-direction: column;
+    align-items: center;
+    border-bottom: none;
+  }
+}
+
+@media (max-width:900px) {
+  .c4 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 0.5em;
+  }
+}
+
+<div
+  className="c0 c1 c2"
+>
+  <div
+    className="c3"
+  >
+    <h1
+      className="c4"
+    >
+      Policies
+    </h1>
+  </div>
+  <div
+    className="c5"
+    dangerouslySetInnerHTML={
+      {
+        "__html": "## gnomAD™ Terms of use
+
+All data here are released openly and publicly for the benefit of the wider biomedical community. You can freely download and search the data, and we encourage the use and publication of results generated from these data. **There are absolutely no restrictions or embargoes on the publication of results derived from gnomAD data**. However, we encourage you to [contact the consortium](mailto:gnomad@broadinstitute.org) before embarking on large-scale analyses to check if your proposed analysis overlaps with work currently underway by the gnomAD consortium. All users of gnomAD data agree to not attempt to reidentify participants.
+
+This data set has been subjected to extensive quality control, but variant calling and filtering from short-read sequencing data is an imperfect and probabilistic process, so many errors no doubt remain. If you spot any results that seem impossible, or suggest some kind of serious processing or variant-calling artifact, don't panic: post on our [forum](https://discuss.gnomad.broadinstitute.org/) to let us know, and we'll do our best to address it.
+
+The primary data from the gnomAD exomes and genomes are available free of restrictions under the [Creative Commons Zero Public Domain Dedication](https://creativecommons.org/publicdomain/zero/1.0/). This means that you can use it for any purpose without legally having to give attribution. However, we request that you actively acknowledge and give attribution to the gnomAD project, and link back to the relevant page, wherever possible. Attribution supports future efforts to release other data. It also reduces the amount of "orphaned data", helping retain links to authoritative sources.
+
+Screenshots of the website may also be used without restriction. As with any use of gnomAD data, we request that you actively acknowledge and give attribution to the gnomAD project, and link back to the relevant page, wherever possible.
+
+Some annotations may have restrictions on usage. For instance, SpliceAI annotations have been computed by Illumina and are provided with permission under a CC BY NC 4.0 license for academic and non-commercial use [SpliceAI](https://github.com/Illumina/SpliceAI). It is the responsibility of users to abide by all relevant licensing requirements.
+
+## gnomAD™ Open Science Policy
+
+The gnomAD team has a firm commitment to open science. This includes, but is not limited to, making our data and code open-source, posting pre-prints, and prioritizing publishing in journals that support open access.
+
+We request that developers integrating gnomAD data in their tools include a statement acknowledging the inclusion of gnomAD data (e.g., "This tool includes data from the gnomAD v4.1 release."). However, to avoid confusion and misattribution, we ask that you refrain from incorporating "gnomAD" or "Genome Aggregation Database'' into the name of your tool and from using the gnomAD logo without permission. gnomAD™ is a trademark owned by The Broad Institute, Inc.
+",
+      }
+    }
+    onClick={[Function]}
+  />
+  <br />
+  <div
+    className="c6"
+  >
+    <h2>
+      gnomAD Privacy Policy (Draft)
+    </h2>
+    <p>
+      gnomAD’s draft Privacy Policy that outlines what data we store while you are using our website and when you communicate with us, can be found
+       
+      <a
+        href="policies_gnomAD_privacy_DRAFT.pdf"
+        rel="noreferrer"
+        target="_blank"
+      >
+        here
+      </a>
+      .
+    </p>
+  </div>
+  <br />
+  <div
+    className="c5"
+    dangerouslySetInnerHTML={
+      {
+        "__html": "## gnomAD Ethics Policy
+
+Data included in the gnomAD database has met our ethical requirements including the Principal Investigator (PI) of all shared datasets signing our [memorandum of understanding (MoU)](https://gnomad.broadinstitute.org/mou), and careful review of each study’s consent by Broad-employed regulatory experts to ensure data is appropriately consented for sharing.
+
+## gnomAD Data Preservation Policy
+
+While we hope gnomAD exists for decades to come, we recognize the importance of having a plan in place for preserving gnomAD datasets. Through our [collaboration](https://gnomad.broadinstitute.org/news/2020-10-open-access-to-gnomad-data-on-multiple-cloud-providers/) with Google Cloud Platform (GCP) and Amazon Web Services (AWS), we have ensured that the public would continue to have access to any past gnomAD datasets as long as at least one of those public dataset hosting entities remains in business. Additionally we will do everything possible to sustain the existing browser for as long as financial/staffing commitments allow.
+
+## Data Generation
+
+A full description of the methods used to aggregate and call variants across the exomes and genomes in this project will be provided shortly. In brief: we pulled raw data together from as many exomes and genomes as we could get our hands on, aligned and processed each of these data types through unified processing pipelines based on Picard, and performed variant calling with the GATK HaplotypeCaller following GATK best practices. Processing and variant calling at this enormous scale was only possible thanks to the hard work of the Broad Institute's Data Sciences Platform, and the Intel GenomicsDB team. Downstream analysis relied heavily on the [Hail](https://hail.is/) toolkit.
+
+## Public Release of Low Frequency Allele Count
+
+The vast majority of variants being discovered within large population datasets – and in particular those with the greatest functional impact – are extremely rare. Some genomic data generating programs limit the ability to share allele counts (AC) below a certain threshold. However, sharing summary statistics for all variants, including those found only in a single individual, is critical for scientific progress and discovery. Obscuring information about this rare variation would be reasonable if the risks to participants were large, but the experiences of many other large genomics initiatives illustrate that the actual risks to privacy are quite small. Follow [this link](/AC1) to read our full statement supporting public release of low frequency allele count summary statistics.
+",
+      }
+    }
+    onClick={[Function]}
+  />
+  <span
+    className="c7"
+  >
+    <h2
+      className="c8"
+    >
+      <a
+        aria-hidden="true"
+        className="c9 c10"
+        href="#citation"
+        id="citation"
+      >
+        <img
+          alt=""
+          aria-hidden="true"
+          height={12}
+          src="test-file-stub"
+          width={12}
+        />
+      </a>
+      Citation in publications
+    </h2>
+  </span>
+  <div
+    className="c5"
+    dangerouslySetInnerHTML={
+      {
+        "__html": "We request that any use of data obtained from the gnomAD browser cite [the gnomAD flagship paper](https://doi.org/10.1038/s41586-023-06045-0) and any online resources that include the data set provide a link to the browser. For use of the SV data, we request that you cite [this paper](https://broad.io/gnomad_sv).
+
+To cite a gnomAD version prior to publication, we recommend using this format:
+
+> gnomAD (vX.X, Y individuals, released on MM/DD/YY) (most recent flagship paper).
+
+For example, to cite gnomAD v4.1:
+
+> gnomAD (v4.1, 807,162 individuals, released on 04/19/2024) (Chen et al., 2023).
+
+There is no need to include us as authors on your manuscript, unless we contributed specific advice or analysis for your work.
+",
+      }
+    }
+    onClick={[Function]}
+  />
+</div>
+`;

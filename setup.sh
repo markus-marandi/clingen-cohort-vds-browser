@@ -9,10 +9,17 @@ GNOMAD_BROWSER_DIR="${REPO_ROOT}/gnomad-browser"
 PATCHES_DIR="${REPO_ROOT}/browser"
 GNOMAD_BROWSER_REPO="https://github.com/broadinstitute/gnomad-browser.git"
 
-PKG_ROOT="/mnt/sdb/packages"
+# Browser overlay base and validated fork source. Keep these pinned so a fresh
+# checkout is reproducible; see docs/BROWSER_OVERLAY.md.
+UPSTREAM_BASE_SHA="db245371f1e572106bda8481ef0f9a6baac6c00d"
+FORK_SOURCE_SHA="aa552d5a547404bab767b448322ce08d38d6048b"
+FORK_REMOTE_URL="https://github.com/markus-marandi/gnomad-browser.git"
+PNPM_VERSION="8.14.3"
+
+PKG_ROOT="${CLINGEN_PKG_ROOT:-/mnt/sdb/packages}"
 PYTHON_PACKAGES_DIR="${PKG_ROOT}/python"
 PNPM_PACKAGES_DIR="${PKG_ROOT}"
-TMP_DIR="/mnt/tmp"
+TMP_DIR="${CLINGEN_TMP_DIR:-/mnt/tmp}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -42,6 +49,23 @@ copy_first_existing_patch() {
     done
 
     warn "missing patch for ${destination}; keeping existing file"
+}
+
+# Copy an overlay tree into its destination, preserving relative paths. This is
+# what makes test files, fixtures, and snapshots part of the tracked overlay
+# instead of an incomplete hand-maintained list.
+apply_overlay_tree() {
+    local source_dir="$1"
+    local destination_dir="$2"
+
+    [ -d "${source_dir}" ] || return 0
+
+    local source_path relative_path
+    while IFS= read -r -d '' source_path; do
+        relative_path="${source_path#"${source_dir}/"}"
+        mkdir -p "${destination_dir}/$(dirname "${relative_path}")"
+        cp "${source_path}" "${destination_dir}/${relative_path}"
+    done < <(find "${source_dir}" -type f -print0)
 }
 
 # ── 1. check required tools ───────────────────────────────────────────────────
@@ -116,9 +140,14 @@ else
     info "compose command: podman-compose (via python3 -m podman_compose)"
 fi
 
-if ! command -v pnpm &>/dev/null; then
-    warn "pnpm not found. attempting install via npm..."
-    npm install -g pnpm || error "could not install pnpm. install manually: https://pnpm.io/installation"
+command -v node &>/dev/null \
+    || error "'node' not found. install Node 18.17.1 (see .tool-versions) and re-run."
+
+if ! command -v pnpm &>/dev/null \
+    || [ "$(pnpm --version)" != "${PNPM_VERSION}" ]; then
+    warn "installing pnpm ${PNPM_VERSION} (required by pnpm-lock.yaml)..."
+    npm install -g "pnpm@${PNPM_VERSION}" \
+        || error "could not install pnpm ${PNPM_VERSION}"
 fi
 
 # check bcftools and tabix for the pipeline (not required for browser-only setup)
@@ -127,104 +156,44 @@ for tool in bcftools tabix; do
         || warn "'$tool' not found - required to run the GVCF preprocessing pipeline"
 done
 
-# ── 2. clone gnomad-browser ───────────────────────────────────────────────────
+# ── 2. checkout pinned gnomad-browser base ────────────────────────────────────
 
 if [ -d "${GNOMAD_BROWSER_DIR}/.git" ]; then
-    info "gnomad-browser already cloned at ${GNOMAD_BROWSER_DIR}"
+    current_sha="$(git -C "${GNOMAD_BROWSER_DIR}" rev-parse HEAD)"
+    if [ "${current_sha}" = "${UPSTREAM_BASE_SHA}" ]; then
+        info "gnomad-browser is at pinned base ${UPSTREAM_BASE_SHA}"
+    else
+        warn "gnomad-browser is at ${current_sha}, not pinned base ${UPSTREAM_BASE_SHA}"
+        warn "leaving the existing checkout unchanged; use a fresh checkout for a reproducible build"
+    fi
 else
     info "cloning gnomad-browser..."
     git clone "${GNOMAD_BROWSER_REPO}" "${GNOMAD_BROWSER_DIR}"
+    info "checking out pinned base ${UPSTREAM_BASE_SHA}..."
+    git -C "${GNOMAD_BROWSER_DIR}" fetch origin "${UPSTREAM_BASE_SHA}"
+    git -C "${GNOMAD_BROWSER_DIR}" checkout --detach "${UPSTREAM_BASE_SHA}"
 fi
 
-# ── 3. apply cohort patches ───────────────────────────────────────────────────
+# ── 3. apply cohort overlay ───────────────────────────────────────────────────
 
-info "applying cohort patches to gnomad-browser..."
+info "applying cohort overlay to gnomad-browser..."
 
-# new file: cohort export pipeline
-cp "${PATCHES_DIR}/data-pipeline/cohort_export.py" \
-   "${GNOMAD_BROWSER_DIR}/data-pipeline/cohort_export.py"
-
-# new file: cohort variant queries for the graphql api
-cp "${PATCHES_DIR}/graphql-api/src/queries/variant-datasets/cohort-variant-queries.ts" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/queries/variant-datasets/cohort-variant-queries.ts"
-
-# replacement: datasets.ts (adds cohort label + reference genome)
-cp "${PATCHES_DIR}/graphql-api/src/datasets.ts" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/datasets.ts"
-
-# replacement: variant-queries.ts (routes dataset: 'cohort' to cohort queries)
-cp "${PATCHES_DIR}/graphql-api/src/queries/variant-queries.ts" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/queries/variant-queries.ts"
-
-# replacement: dataset-id.graphql (adds 'cohort' to DatasetId enum)
-cp "${PATCHES_DIR}/graphql-api/src/graphql/types/dataset-id.graphql" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/dataset-id.graphql"
-
-# replacement: dataset-metadata/metadata.ts (adds 'cohort' label + metadata entry)
-cp "${PATCHES_DIR}/dataset-metadata/metadata.ts" \
-   "${GNOMAD_BROWSER_DIR}/dataset-metadata/metadata.ts"
-
-# replacement: variant.graphql (adds cohort annotation fields to VariantDetails)
-cp "${PATCHES_DIR}/graphql-api/src/graphql/types/variant.graphql" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/variant.graphql"
-
-# new files: cohort-native search and summary resolvers
-cp "${PATCHES_DIR}/graphql-api/src/graphql/types/cohort.graphql" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/cohort.graphql"
-cp "${PATCHES_DIR}/graphql-api/src/graphql/types/query.graphql" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/types/query.graphql"
-cp "${PATCHES_DIR}/graphql-api/src/graphql/resolvers/cohort.ts" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/resolvers/cohort.ts"
-cp "${PATCHES_DIR}/graphql-api/src/graphql/schema.ts" \
-   "${GNOMAD_BROWSER_DIR}/graphql-api/src/graphql/schema.ts"
-
-# replacement: browser UI source files (cohort default dataset, search box, variant page)
-cp "${PATCHES_DIR}/browser-src/App.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/App.tsx"
-cp "${PATCHES_DIR}/browser-src/Brand.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/Brand.tsx"
-cp "${PATCHES_DIR}/browser-src/tyk-logo.png" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/tyk-logo.png"
-cp "${PATCHES_DIR}/browser-src/DocumentTitle.ts" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/DocumentTitle.ts"
-cp "${PATCHES_DIR}/browser-src/GnomadPageHeading.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/GnomadPageHeading.tsx"
-cp "${PATCHES_DIR}/browser-src/HomePage.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/HomePage.tsx"
-cp "${PATCHES_DIR}/browser-src/InfoPage.ts" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/InfoPage.ts"
-cp "${PATCHES_DIR}/browser-src/NavBar.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/NavBar.tsx"
-cp "${PATCHES_DIR}/browser-src/index.html" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/index.html"
-cp "${PATCHES_DIR}/browser-src/Routes.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/Routes.tsx"
-cp "${PATCHES_DIR}/browser-src/SearchRedirectPage.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/SearchRedirectPage.tsx"
-cp "${PATCHES_DIR}/browser-src/Searchbox.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/Searchbox.tsx"
-cp "${PATCHES_DIR}/browser-src/search.ts" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/search.ts"
-cp "${PATCHES_DIR}/browser-src/VariantPageRouter.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/VariantPageRouter.tsx"
-
-# new file: cohort filter page (lazy-imported by Routes.tsx)
-cp "${PATCHES_DIR}/browser-src/CohortFilterPage.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/CohortFilterPage.tsx"
-
-# new file: cohort-specific variant detail page
-mkdir -p "${GNOMAD_BROWSER_DIR}/browser/src/VariantPage"
-cp "${PATCHES_DIR}/browser-src/VariantPage/CohortVariantPage.tsx" \
-   "${GNOMAD_BROWSER_DIR}/browser/src/VariantPage/CohortVariantPage.tsx"
+# The overlay mirrors the upstream tree. Copying whole trees keeps source files,
+# tests, fixtures, and snapshots in sync with the tracked overlay.
+apply_overlay_tree "${PATCHES_DIR}/browser-src" \
+    "${GNOMAD_BROWSER_DIR}/browser/src"
+apply_overlay_tree "${PATCHES_DIR}/graphql-api" \
+    "${GNOMAD_BROWSER_DIR}/graphql-api"
+apply_overlay_tree "${PATCHES_DIR}/dataset-metadata" \
+    "${GNOMAD_BROWSER_DIR}/dataset-metadata"
+apply_overlay_tree "${PATCHES_DIR}/data-pipeline" \
+    "${GNOMAD_BROWSER_DIR}/data-pipeline"
 
 # docker-compose for local dev
 cp "${PATCHES_DIR}/docker-compose.yml" \
    "${GNOMAD_BROWSER_DIR}/docker-compose.yml"
 
 # keep dockerfile targets aligned with docker-compose build paths
-copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/graphql-api/Dockerfile" \
-    "${PATCHES_DIR}/graphql-api/Dockerfile" \
-    "${PATCHES_DIR}/graphql-api/src/Dockerfile"
 copy_first_existing_patch "${GNOMAD_BROWSER_DIR}/browser/Dockerfile" \
     "${PATCHES_DIR}/Dockerfile" \
     "${PATCHES_DIR}/browser/Dockerfile"
@@ -249,7 +218,8 @@ ensure_writable_dir "${PNPM_PACKAGES_DIR}"
 # link-workspace-packages resolves @gnomad/* from the local workspace
 # (browser/package.json uses "*" not "workspace:*").
 # shamefully-hoist avoids pnpm's virtual store chmod calls that fail on /mnt/sdb.
-info "installing node dependencies (workspace root)..."
+# The upstream lockfile is part of the pinned base; do not delete it.
+info "installing node dependencies (workspace root, frozen lockfile)..."
 (
     cd "${GNOMAD_BROWSER_DIR}"
     cat > .npmrc <<EOF
@@ -260,8 +230,7 @@ store-dir=${PNPM_PACKAGES_DIR}/pnpm-store
 cache-dir=${PNPM_PACKAGES_DIR}/pnpm-cache
 state-dir=${PNPM_PACKAGES_DIR}/pnpm-state
 EOF
-    rm -f pnpm-lock.yaml
-    PNPM_HOME="${PNPM_PACKAGES_DIR}/pnpm-home" pnpm install
+    CI=true PNPM_HOME="${PNPM_PACKAGES_DIR}/pnpm-home" pnpm install --frozen-lockfile
 )
 
 # ── 5. check python deps ──────────────────────────────────────────────────────
