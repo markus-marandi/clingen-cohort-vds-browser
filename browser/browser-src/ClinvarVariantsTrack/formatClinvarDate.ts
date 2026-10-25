@@ -10,7 +10,7 @@ const daysInMonth = (year: number, month: number): number => {
 
 // ClinVar dates are formatted YYYY-MM-DD
 const formatClinvarDate = (dateString: string | null | undefined): string => {
-  if (!dateString) {
+  if (dateString === null || dateString === undefined) {
     return 'unknown'
   }
 
