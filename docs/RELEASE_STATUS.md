@@ -1,9 +1,9 @@
 # Internal pilot handover status
 
-Source reviewed on 2026-10-25: `feat/internal-sample-browser` at
+Runtime implementation reviewed on 2026-10-25 at
 `94123158973da7844bfb59a8f8b2f3ce3514dc71`.
-The handover branch `docs/internal-browser-handover` now includes that fix and the
-operator documentation cleanup. Main has not been merged or deployed by this work.
+The implementation and operator documentation are now merged into `main`.
+The repository merge did not restart or replace the server installation.
 
 ## Available
 
@@ -28,7 +28,7 @@ The server agent reports:
 - only the isolated pilot API was recreated; the pilot browser hot-reloaded;
   original services, previous indices and source MT/TSVs/GVCFs were preserved.
 
-The handover branch also commits a reproducible pilot lifecycle script and the
+The repository includes a reproducible browser lifecycle script and the
 exact installation configuration in [OPERATIONS.md](OPERATIONS.md). On the internal server,
 `doctor`, `start`, `status` and `logs` were verified against the running
 installation: API health 200, browser `/samples` 200, and the accepted index

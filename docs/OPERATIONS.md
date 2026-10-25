@@ -33,7 +33,7 @@ Verified against the running installation on 2026-10-25.
 
 | Item | Value |
 |---|---|
-| Parent source | Local project checkout; branch `docs/internal-browser-handover` |
+| Parent source | Local project checkout; branch `main` |
 | Generated source | `gnomad-browser/` inside the local project checkout |
 | Upstream source | `db245371f1e572106bda8481ef0f9a6baac6c00d` plus the tracked overlay |
 | Docker network | `gnomad-browser_default` (existing bridge network) |
