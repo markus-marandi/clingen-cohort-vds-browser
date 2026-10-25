@@ -1,7 +1,8 @@
 # Documentation
 
-Start with the [main README](../README.md) for access and the six common searches.
+Start with the [main README](../README.md) for the full pipeline, TUI, browser and common searches.
 
+- [Pipeline guide](PIPELINE.md): GVCF ingestion, annotation, exports and direct commands.
 - [Operations](OPERATIONS.md): current pilot commands, dependencies and setup boundary.
 - [Workflows](WORKFLOWS.md): search steps, field meanings and known limitations.
 - [Release status](RELEASE_STATUS.md): current source/runtime evidence and acceptance gaps.

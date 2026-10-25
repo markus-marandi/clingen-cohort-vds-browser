@@ -1,7 +1,7 @@
 # Run the internal pilot
 
 This is the existing 20-sample pilot on the internal server, not a fresh data installation.
-The reproducible lifecycle script is [scripts/internal-pilot.sh](../scripts/internal-pilot.sh).
+The reproducible lifecycle script is [scripts/browser.sh](../scripts/browser.sh).
 It starts the existing installation; it does not create, delete, or reindex data.
 
 ## Quick start
@@ -9,9 +9,9 @@ It starts the existing installation; it does not create, delete, or reindex data
 On the internal server, as the user that owns the rootless Docker daemon:
 
 ```sh
-scripts/internal-pilot.sh doctor
-scripts/internal-pilot.sh start
-scripts/internal-pilot.sh status
+scripts/browser.sh doctor
+scripts/browser.sh start
+scripts/browser.sh status
 ```
 
 `start` starts the existing Elasticsearch and Redis dependencies if stopped, then
@@ -22,9 +22,9 @@ counts and local URLs. `logs` tails both pilot services; logs may contain
 patient data, so keep them on the internal server.
 
 ```sh
-scripts/internal-pilot.sh logs 50
-scripts/internal-pilot.sh urls
-scripts/internal-pilot.sh stop       # stops only the pilot browser and API
+scripts/browser.sh logs 50
+scripts/browser.sh urls
+scripts/browser.sh stop       # stops only the pilot browser and API
 ```
 
 ## Exact pilot configuration
@@ -122,7 +122,7 @@ Verified counts on isolated Elasticsearch 9201:
 | `COHORT_SAMPLES_INDEX` | `cohort_samples_pilot20_peralt` | 20 |
 | `COHORT_SAMPLE_VARIANTS_INDEX` | `cohort_sample_variants_pilot20_peralt` | 939,314 |
 
-`scripts/internal-pilot.sh start` verifies these counts and refuses to continue
+`scripts/browser.sh start` verifies these counts and refuses to continue
 if they differ. It never creates, deletes or reindexes them. The older
 `cohort_variants`, `cohort_samples_pilot20` and
 `cohort_sample_variants_pilot20` indices are preserved but are not selected by
@@ -136,7 +136,7 @@ separate existing services. Do not delete or recreate them for a pilot restart.
 Use the internal browser address and connection instructions supplied privately
 by your administrator. This repository stores no remote hostname, SSH account,
 or network address. The pilot's local URL is `http://127.0.0.1:8010/samples` on
-the server itself. `scripts/internal-pilot.sh urls` prints local URLs only.
+the server itself. `scripts/browser.sh urls` prints local URLs only.
 
 The existing browser service and the new pilot are separate. Do not assume an
 existing browser address serves the new pilot until an operator has verified
@@ -148,7 +148,7 @@ configuration. Logs can contain patient data; keep them on the internal system.
 
 ## Container recovery
 
-`scripts/internal-pilot.sh doctor` checks source, images, network, dependencies and
+`scripts/browser.sh doctor` checks source, images, network, dependencies and
 the existing API/browser configuration without changing anything. If an image is
 missing, rebuild it from the generated checkout (recovery only, not normal startup):
 
@@ -198,7 +198,7 @@ sample table and variant/carrier links in the browser.
 ## Data preparation and refresh
 
 Normal browsing reads the existing indices. Data refresh is separate from startup
-and is not performed by `scripts/internal-pilot.sh`.
+and is not performed by `scripts/browser.sh`.
 
 Set the annotated MT path in local configuration (`/path/to/cohort_annotated.mt`). No reannotation is part of
 normal startup. Deliberate refreshes use the existing Hail/VEP image
