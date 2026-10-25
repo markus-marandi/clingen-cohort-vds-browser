@@ -138,6 +138,36 @@ practical capacity depends on compute, memory, storage and variant count. The
 current scripts use local Spark, so larger cohorts require resource planning
 and capacity testing.
 
+## FAQ
+
+### How do I add one or several new GVCFs?
+
+1. Add the new indexed GVCFs and their metadata. Each new sample needs a unique
+   sample ID and filename.
+2. In the TUI, run **Ingest** using the existing cohort manifest and directories.
+   It identifies new filenames and combines them with the last completed VDS.
+3. Run **Annotate** on the new VDS, writing a new MT. Export aggregate variants
+   and sample/carrier records for the **entire updated cohort** into fresh indices.
+4. Have the operator select the new index set in the API and verify sample counts,
+   frequencies and links. Keep the previous version for rollback.
+
+One file and a batch follow the same flow. The browser updates after the new
+indices are selected, not when files are copied into the input directory.
+
+### How do I update an existing patient/sample?
+
+- **Metadata, panels or report changes:** edit the source TSVs, keep the sample ID,
+  and repeat the full sample/carrier export into fresh indices using the existing
+  MT. No GVCF ingestion or VEP rerun is needed. The aggregate index stays unchanged.
+- **Corrected or replacement GVCF:** there is no in-place replacement command yet.
+  Build a new cohort version from the complete current GVCF set, including the
+  replacement and excluding the old file. Use fresh preprocessing, VDS, scratch
+  and manifest paths, then annotate and export again before switching the API.
+
+Do not overwrite an ingested file or rename it to force an update: tracking is
+filename-based, and another filename with the same sample ID is not a replacement.
+See [the update procedure](docs/PIPELINE.md#adding-and-updating-samples) for details.
+
 ## Documentation and support
 
 - [Pipeline guide](docs/PIPELINE.md): inputs, outputs, direct commands and configuration.
@@ -149,7 +179,7 @@ and capacity testing.
 
 - **HPO search:** sample-to-HPO import, versioned term lookup and sample search by ID or label.
 - **Allele-specific annotations:** retain annotations for each ALT so multi-ALT variants participate fully in gene and annotation searches.
-- **QC and sample metadata:** genotype/sample quality checks, inferred chromosomal sex and improved repeated-sequencing support.
+- **QC and sample metadata:** genotype/sample quality checks, inferred chromosomal sex and explicit sample-replacement/resequencing workflows.
 - **Search completeness:** compound consequences, strict thresholds, larger result sets and distinct-sample carrier frequencies.
 - **Scale and refresh:** memory-bounded aggregate export, large-cohort benchmarks and reliable metadata/reference-data updates.
 - **Deployment and usability:** portable configuration, broader TUI coverage, browser interaction checks and operational recovery verification.
