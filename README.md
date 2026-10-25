@@ -157,7 +157,9 @@ Bootstrap the browser patch layer:
 The overlay is pinned to a specific upstream browser revision. See
 [`docs/BROWSER_OVERLAY.md`](docs/BROWSER_OVERLAY.md) for the upstream base and
 validated fork SHAs, the overlay file mapping, and the fresh-checkout validation
-commands.
+commands. Gene pages and the region gene track use the small GENCODE release 19
+GRCh37 reference index documented in
+[`docs/BROWSER_GENE_REFERENCE.md`](docs/BROWSER_GENE_REFERENCE.md).
 
 Run the browser stack after setup:
 

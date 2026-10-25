@@ -39,6 +39,18 @@ const formatVariant = (source: any) => {
     lof_curations: null,
     transcript_consequences: null,
     sortedTranscriptConsequences: null,
+    transcript_consequence: {
+      major_consequence: source.consequence ?? null,
+      gene_symbol: source.gene_symbol ?? null,
+      transcript_id: source.transcript ?? null,
+      transcript_version: '',
+      hgvsc: source.cdna ?? null,
+      hgvsp: source.p_nomen ?? null,
+      hgvs: source.gdna ?? null,
+      lof: null,
+      lof_filter: null,
+      lof_flags: null,
+    },
     in_silico_predictors: null,
     non_coding_constraint: null,
     // cohort-specific annotation fields (returned as top-level for CohortVariantPage)
@@ -63,6 +75,8 @@ const formatVariant = (source: any) => {
     gnomad_moeuf: source.gnomad_moeuf ?? null,
     clinvar_sig: source.clinvar_sig ?? null,
     clinvar_clnrevstat: source.clinvar_clnrevstat ?? null,
+    clinical_significance: source.clinvar_sig ?? null,
+    clinvar_variation_id: null,
     gnomad_af: source.gnomad_af ?? null,
     gnomad_nonfin: source.gnomad_nonfin ?? null,
     exome: {

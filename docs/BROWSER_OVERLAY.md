@@ -74,6 +74,28 @@ pnpm test:jest --runInBand
 `pnpm-lock.yaml` from the pinned base is kept; setup does not delete it and
 installs with `--frozen-lockfile` using pnpm 8.14.3.
 
+## Cohort runtime fixes
+
+The live smoke test exposed three runtime blockers:
+
+- Elasticsearch 8 rejects the legacy `_doc/_search` query parameters that the
+  6.8 client adds when `type: '_doc'` is passed. Gene and region query helpers
+  now omit `type`; `size` and `_source` are sent in a way that works with the
+  pinned client and Elasticsearch 8.
+- `BrowserMetadata.clinvar_release_date` was non-nullable, but cohort pages have
+  no ClinVar release. It is nullable in the overlay and the ClinVar resolvers return
+  empty/null when the optional ClinVar index is absent.
+- Optional cohort ClinVar and coverage sections are skipped or return empty instead
+  of querying missing gnomAD indices.
+
+Required gene-reference data is the GENCODE release 19 GRCh37 annotation described
+in [`BROWSER_GENE_REFERENCE.md`](BROWSER_GENE_REFERENCE.md). It is imported
+with `data-pipeline/import_gene_reference.py`; no dummy index is created and no
+gnomAD variant data is downloaded for optional features.
+
+The cohort CSV export now labels `Source` with `labelForDataset(datasetId)`
+(`Tartu University Hospital`) instead of the generic exome/genome source.
+
 ## Intentional differences from the fork
 
 The tracked overlay is deliberately not a copy of the fork checkout:
