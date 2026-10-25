@@ -254,42 +254,72 @@ def export_mt_to_es(
     mt = hl.read_matrix_table(mt_path)
 
     ht = mt.rows()
+    # unkey so the full alleles array can be carried alongside the row keys
+    ht = ht.key_by()
     # check if filters field exists in the mt
     has_filters = 'filters' in ht.row
     ht = ht.select(
         chrom=ht.locus.contig,
         pos=ht.locus.position,
         ref=ht.alleles[0],
-        alt=ht.alleles[1],
+        alleles=ht.alleles,
         filters=ht.filters if has_filters else hl.empty_set(hl.tstr),
-        # cohort frequencies
-        ac_total=ht.variant_qc.AC[1],
-        an_total=ht.variant_qc.AN,
-        af_total=ht.variant_qc.AF[1],
-        hom_count=ht.variant_qc.homozygote_count[1],
-        # VEP (flat struct from --pick; may be missing for non-coding variants)
-        gene_symbol=ht.vep.SYMBOL,
-        consequence=ht.vep.Consequence,
-        impact=ht.vep.IMPACT,
-        gdna=ht.vep.HGVSg,
-        cdna=ht.vep.HGVSc,
-        p_nomen=ht.vep.HGVSp,
-        transcript=ht.vep.transcript_id,
-        cadd_score=ht.vep.cadd_score,
-        revel_score=ht.vep.revel_score,
-        sift_score=ht.vep.sift_score,
-        polyphen_score=ht.vep.polyphen_score,
-        metarnn_score=ht.vep.metarnn_score,
-        clinpred_score=ht.vep.clinpred_score,
-        alphamissense_score=ht.vep.alphamissense_score,
-        dbnsfp_popmax_af=ht.vep.dbnsfp_popmax_af,
-        gnomad_loeuf=ht.vep.gnomad_loeuf,
-        gnomad_moeuf=ht.vep.gnomad_moeuf,
-        clinvar_sig=ht.vep.ClinVar_CLNSIG,
-        clinvar_clnrevstat=ht.vep.ClinVar_CLNREVSTAT,
-        # gnomAD
+        # cohort frequencies (arrays are indexed by ALT below)
+        ac=ht.variant_qc.AC,
+        an=ht.variant_qc.AN,
+        af=ht.variant_qc.AF,
+        hom=ht.variant_qc.homozygote_count,
+        # VEP is a single flattened row annotation, not a per-ALT array.
+        # It is reused only for single-ALT rows and nulled for multi-ALT rows.
+        vep=ht.vep,
+        # gnomAD frequencies are also row-level, not per-ALT.
         gnomad_af=ht.gnomad_af,
         gnomad_nonfin=ht.gnomad_nonfin,
+    )
+    ht = ht.annotate(_alt_index=hl.range(1, hl.len(ht.alleles)))
+    ht = ht.explode(ht._alt_index)
+    ht = ht.annotate(
+        alt=ht.alleles[ht._alt_index],
+        ac_total=ht.ac[ht._alt_index],
+        an_total=ht.an,
+        af_total=ht.af[ht._alt_index],
+        hom_count=ht.hom[ht._alt_index],
+        variant_id=(
+            hl.str(ht.chrom)
+            + '-'
+            + hl.str(ht.pos)
+            + '-'
+            + ht.ref
+            + '-'
+            + ht.alleles[ht._alt_index]
+        ),
+        is_single_alt=hl.len(ht.alleles) == 2,
+    )
+    # Only carry annotation fields that demonstrably belong to this ALT.
+    # The flattened VEP/predictor/ClinVar and gnomAD fields are row-level
+    # scalars, so they are nulled for multi-ALT rows rather than copied.
+    ht = ht.annotate(
+        gene_symbol=hl.if_else(ht.is_single_alt, ht.vep.SYMBOL, hl.missing(hl.tstr)),
+        consequence=hl.if_else(ht.is_single_alt, ht.vep.Consequence, hl.missing(hl.tstr)),
+        impact=hl.if_else(ht.is_single_alt, ht.vep.IMPACT, hl.missing(hl.tstr)),
+        gdna=hl.if_else(ht.is_single_alt, ht.vep.HGVSg, hl.missing(hl.tstr)),
+        cdna=hl.if_else(ht.is_single_alt, ht.vep.HGVSc, hl.missing(hl.tstr)),
+        p_nomen=hl.if_else(ht.is_single_alt, ht.vep.HGVSp, hl.missing(hl.tstr)),
+        transcript=hl.if_else(ht.is_single_alt, ht.vep.transcript_id, hl.missing(hl.tstr)),
+        cadd_score=hl.if_else(ht.is_single_alt, ht.vep.cadd_score, hl.missing(hl.tfloat64)),
+        revel_score=hl.if_else(ht.is_single_alt, ht.vep.revel_score, hl.missing(hl.tfloat64)),
+        sift_score=hl.if_else(ht.is_single_alt, ht.vep.sift_score, hl.missing(hl.tfloat64)),
+        polyphen_score=hl.if_else(ht.is_single_alt, ht.vep.polyphen_score, hl.missing(hl.tfloat64)),
+        metarnn_score=hl.if_else(ht.is_single_alt, ht.vep.metarnn_score, hl.missing(hl.tfloat64)),
+        clinpred_score=hl.if_else(ht.is_single_alt, ht.vep.clinpred_score, hl.missing(hl.tfloat64)),
+        alphamissense_score=hl.if_else(ht.is_single_alt, ht.vep.alphamissense_score, hl.missing(hl.tfloat64)),
+        dbnsfp_popmax_af=hl.if_else(ht.is_single_alt, ht.vep.dbnsfp_popmax_af, hl.missing(hl.tfloat64)),
+        gnomad_loeuf=hl.if_else(ht.is_single_alt, ht.vep.gnomad_loeuf, hl.missing(hl.tfloat64)),
+        gnomad_moeuf=hl.if_else(ht.is_single_alt, ht.vep.gnomad_moeuf, hl.missing(hl.tfloat64)),
+        clinvar_sig=hl.if_else(ht.is_single_alt, ht.vep.ClinVar_CLNSIG, hl.missing(hl.tstr)),
+        clinvar_clnrevstat=hl.if_else(ht.is_single_alt, ht.vep.ClinVar_CLNREVSTAT, hl.missing(hl.tstr)),
+        gnomad_af=hl.if_else(ht.is_single_alt, ht.gnomad_af, hl.missing(hl.tfloat64)),
+        gnomad_nonfin=hl.if_else(ht.is_single_alt, ht.gnomad_nonfin, hl.missing(hl.tfloat64)),
     )
 
     total = ht.count()

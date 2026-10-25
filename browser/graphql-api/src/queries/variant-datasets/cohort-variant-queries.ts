@@ -9,7 +9,7 @@
 
 import { UserVisibleError } from '../../errors'
 
-const COHORT_VARIANT_INDEX = 'cohort_variants'
+const COHORT_VARIANT_INDEX = process.env.COHORT_VARIANTS_INDEX || 'cohort_variants'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -237,7 +237,9 @@ const buildCohortFilters = (args: any) => {
   if (args.clinvar_sig) {
     // ClinVar_CLNSIG may be a multi-value string (e.g. "Pathogenic/Likely_pathogenic"),
     // so match the requested significance as a substring rather than an exact keyword.
-    filter.push({ wildcard: { clinvar_sig: { value: `*${args.clinvar_sig}*` } } })
+    filter.push({
+      wildcard: { clinvar_sig: { value: `*${args.clinvar_sig}*` } },
+    })
   }
   if (args.consequence) {
     filter.push({ term: { consequence: args.consequence } })

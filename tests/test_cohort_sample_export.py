@@ -63,7 +63,19 @@ class SampleExportTest(unittest.TestCase):
         self.assertEqual(rows[0]["variant_id"], "1-10-A-T")
         self.assertEqual(rows[0]["genotype"], "0/2")
         self.assertEqual(rows[0]["var_pct"], 0.4)
+        self.assertIsNone(rows[0]["gene_symbol"])
+        self.assertIsNone(rows[0]["consequence"])
         self.assertEqual(stats["carrier_documents"], 1)
+
+    def test_single_alt_keeps_row_annotation(self):
+        samples, stats = self.load()
+        entry = {"sample_id": "SYN_B", "chrom": "1", "pos": 10, "alleles": ["A", "G"],
+                 "called_alleles": [0, 1], "genotype": "0/1", "lad": [10, 10],
+                 "local_alleles": [0, 1], "depth": 20, "gq": 99,
+                 "gene_symbol": "TEST", "consequence": "missense_variant"}
+        rows = list(export.carrier_documents([entry], samples, stats))
+        self.assertEqual(rows[0]["gene_symbol"], "TEST")
+        self.assertEqual(rows[0]["consequence"], "missense_variant")
         entry.update(called_alleles=[0, 0], genotype="0/0")
         self.assertEqual(list(export.carrier_documents([entry], samples, Counter())), [])
 

@@ -63,7 +63,11 @@ export const TableScroll = styled.div`
 `
 
 export const useCohortQuery = <T,>(query: string, variables: Record<string, unknown>) => {
-  const [state, setState] = useState<{ data: T | null; error: string | null; loading: boolean }>({
+  const [state, setState] = useState<{
+    data: T | null
+    error: string | null
+    loading: boolean
+  }>({
     data: null,
     error: null,
     loading: true,
@@ -76,7 +80,10 @@ export const useCohortQuery = <T,>(query: string, variables: Record<string, unkn
       method: 'POST',
       body,
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', 'X-GnomAD-Client': 'browser' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-GnomAD-Client': 'browser',
+      },
     })
       .then(async (response) => {
         if (!response.ok) throw new Error('Unable to load internal sample data.')
@@ -173,8 +180,8 @@ export const VariantRows = ({ variants }: { variants: SampleVariant[] }) => (
             <td>
               <VariantLink variantId={variant.variant_id} />
             </td>
-            <td>{variant.gene_symbol || '—'}</td>
-            <td>{variant.consequence || '—'}</td>
+            <td>{variant.gene_symbol ?? 'unavailable'}</td>
+            <td>{variant.consequence ?? 'unavailable'}</td>
             <td>{variant.genotype}</td>
             <td>{variant.depth ?? '—'}</td>
             <td>{variant.gq ?? '—'}</td>

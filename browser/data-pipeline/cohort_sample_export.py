@@ -111,6 +111,9 @@ def carrier_documents(rows, samples, stats):
         sample = samples.get(row["sample_id"])
         if sample is None:
             continue
+        # The flattened VEP annotation is row-level, not per-ALT. Reuse it only
+        # for single-ALT rows; do not copy another ALT's annotation.
+        single_alt = len(row["alleles"]) == 2
         for alt_index in sorted(set(row["called_alleles"]) - {0}):
             variant_id = f'{row["chrom"]}-{row["pos"]}-{row["alleles"][0]}-{row["alleles"][alt_index]}'
             depths = row.get("ad")
@@ -129,7 +132,8 @@ def carrier_documents(rows, samples, stats):
                 "sample_id": row["sample_id"], "variant_id": variant_id,
                 "chrom": row["chrom"], "pos": row["pos"],
                 "ref": row["alleles"][0], "alt": row["alleles"][alt_index],
-                "gene_symbol": row.get("gene_symbol"), "consequence": row.get("consequence"),
+                "gene_symbol": row.get("gene_symbol") if single_alt else None,
+                "consequence": row.get("consequence") if single_alt else None,
                 "genotype": row["genotype"], "depth": row.get("depth"), "gq": row.get("gq"),
                 "var_pct": fraction, "in_report": report_flag(sample, variant_id),
             }
