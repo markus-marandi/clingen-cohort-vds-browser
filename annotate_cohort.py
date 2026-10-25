@@ -339,7 +339,7 @@ def annotate(
             HGVSc=hl.or_missing(has_tc, tc.hgvsc),
             HGVSp=hl.or_missing(has_tc, tc.hgvsp),
             transcript_id=hl.or_missing(has_tc, tc.transcript_id),
-            # dbNSFP-derived functional predictors (v5.3.1; see annotation_sources.md).
+            # dbNSFP-derived functional predictors (v5.3.1; see docs/ANNOTATION_SOURCES.md).
             # The dbNSFP VEP plugin emits these as strings, so parse via _dbnsfp_float.
             cadd_score=hl.or_missing(has_tc, _dbnsfp_float(tc.cadd_phred)),
             revel_score=hl.or_missing(has_tc, _dbnsfp_float(tc.revel_score)),
@@ -350,7 +350,7 @@ def annotate(
             alphamissense_score=hl.or_missing(has_tc, _dbnsfp_float(tc.alphamissense_score)),
             # dbNSFP_POPMAX_AF is the consolidated max population AF across
             # dbNSFP sources (v5.3.1 header; replaces the gnomAD_genomes_AF
-            # placeholder - see annotation_sources.md / OLI-2). VEP emits plugin
+            # placeholder - see docs/ANNOTATION_SOURCES.md / OLI-2). VEP emits plugin
             # fields lowercased in JSON; the schema and these references must
             # match (v5.3.1a verification, 2026-09-27).
             dbnsfp_popmax_af=hl.or_missing(has_tc, _dbnsfp_float(tc.dbnsfp_popmax_af)),

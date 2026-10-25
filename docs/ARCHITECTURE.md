@@ -1,10 +1,9 @@
 # Architecture Specification
 
-> Main-baseline/design assessment: the separate `feat/internal-sample-browser`
-> branch now prepares TSV/MT export, sample/carrier APIs and browser views.
-> See [the pilot handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md) for its current contract,
-> which preserves raw dates and nullable report membership. Real-data integration
-> is still pending. The broader design below is not the current pilot task list.
+> Broader design/reference material. For the current internal pilot, use
+> [release status](RELEASE_STATUS.md), [operations](OPERATIONS.md) and
+> [operator workflows](WORKFLOWS.md). Historical implementation assessments
+> below are not the current pilot's remaining task list.
 
 _Scope and implementation assessment updated: 2026-10-25_
 
@@ -12,8 +11,7 @@ Cohort variant browser for internal WGS/WES data. Concatenates and stores genoty
 annotates variants with VEP + dbNSFP + ClinVar + gnomAD, and serves results through a
 patched gnomAD browser UI. The first release is GRCh37-only and internal-only. All
 authenticated internal users may see sample IDs. Public deployment is outside v1.
-See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for source implementation,
-unmerged browser work, and remaining acceptance checks.
+See [release status](RELEASE_STATUS.md) for current implementation and acceptance checks.
 
 ---
 

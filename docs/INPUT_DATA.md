@@ -1,12 +1,12 @@
-# Cohort input data on dragon
+# Cohort input data on the internal server
 
 Locations and filenames supplied by the user on 2026-10-25. These are remote
-paths on `dragon`, not paths verified from the local Mac. No genomic or patient
+paths on `the internal server`, not paths verified from the local Mac. No genomic or patient
 data was copied into the repository.
 
 ## Metadata
 
-Directory: `/srv/Helix/NovaseqX_WES/GE_db`
+Directory: `/path/to/metadata`
 
 | File | Supplied evidence | Remaining inspection |
 |---|---|---|
@@ -19,7 +19,7 @@ Directory: `/srv/Helix/NovaseqX_WES/GE_db`
 | `WES_GE_hg19_sample_data_n6705.tsv` | Same eight-column sample header as the test file | Validate values and sample relationships |
 | `WES_GE_hg19_samples_n6705.tsv` | Header `sample_id`, `date_seq`, `run_id` | Sequencing manifest; reconcile its dates/run IDs with sample data and its IDs with GVCF headers |
 
-Headers supplied by the user from `head -n 1` on dragon:
+Headers supplied by the user from `head -n 1` on the internal server:
 
 ```text
 test_hg19_sample_data_n20.tsv
@@ -62,7 +62,7 @@ silently become `None`/a negative report status.
 
 Current GVCF and TBI directory supplied by the user:
 
-`/srv/Helix/NovaseqX_WES/andmebaas_test_valim`
+`/path/to/gvcfs`
 
 Before ingestion, verify file/index pairing, the sample ID in each GVCF header,
 the relationship to metadata IDs, and the expected selected cohort. File counts
@@ -108,5 +108,5 @@ variant-bearing=4, and one malformed report relationship. These are remote-agent
 reports, not a repeated local inspection. The user then explicitly deferred edge
 case cleanup: preserve dates/material/panel strings, skip/count the malformed
 report relationship, and do not require the full manifest to admit this pilot.
-Use [the prepared handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md), not the broader input
-questions above, as the current pilot implementation scope.
+Use [release status](RELEASE_STATUS.md) and [workflows](WORKFLOWS.md) for the
+current pilot scope; the broader input questions above are reference material.

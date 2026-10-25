@@ -334,7 +334,7 @@ type VariantDetails {
   gdna: String
   p_nomen: String
   cadd_score: Float
-  # in-silico predictor set (dbNSFP v5.3.1a via VEP plugin; see annotation_sources.md)
+  # in-silico predictor set (dbNSFP v5.3.1a via VEP plugin; see docs/ANNOTATION_SOURCES.md)
   revel_score: Float
   sift_score: Float
   polyphen_score: Float

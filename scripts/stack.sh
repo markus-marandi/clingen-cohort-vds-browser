@@ -86,7 +86,7 @@ check_mtab() {
 
       sudo ln -sf /proc/self/mounts /etc/mtab
 
-  if you cannot get root on this host, run the stack without compose - see DEMO.md
+  if you cannot get root on this host, run the stack without compose - see docs/archive/DEMO.md
   for the native service startup path.
 
 FIX
@@ -134,13 +134,13 @@ check_tmpdir() {
 
 check_ports() {
     local busy=()
-    for port in 9200 6379 8000 3000; do
+    for port in 9200 6379 8000 8008; do
         if command -v ss &>/dev/null && ss -ltn "sport = :${port}" 2>/dev/null | grep -q LISTEN; then
             busy+=("${port}")
         fi
     done
     if [ "${#busy[@]}" -gt 0 ]; then
-        warn "ports already listening: ${busy[*]} (native services from DEMO.md?). Stop them or compose will fail to bind."
+        warn "ports already listening: ${busy[*]} (native services from docs/archive/DEMO.md?). Stop them or compose will fail to bind."
     fi
 }
 
@@ -176,7 +176,7 @@ case "${cmd}" in
     up)
         doctor || error "preflight failed; not starting the stack"
         compose_run up --build -d "$@"
-        info "browser http://localhost:3000  api http://localhost:8000  es http://localhost:9200"
+        info "browser http://localhost:8008  api http://localhost:8000  es http://localhost:9200"
         ;;
     down|logs|ps|build|restart|pull)
         resolve_runtime; resolve_compose

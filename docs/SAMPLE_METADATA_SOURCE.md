@@ -5,7 +5,7 @@ The local source file is `/Users/markus/Downloads/Ustina VDS browser specs-2.doc
 This note transcribes the relevant requirements; it does not define a new storage schema.
 
 On 2026-10-25 the user also supplied redacted TSV excerpts and the actual input
-locations on `dragon`; see [INPUT_DATA.md](INPUT_DATA.md). Sample IDs in those
+locations on `the internal server`; see [INPUT_DATA.md](INPUT_DATA.md). Sample IDs in those
 excerpts were deliberately replaced and must not be used to infer duplicates.
 
 ## Birth date
@@ -63,7 +63,7 @@ completeness or amended-report behavior. Preserve the distinctions on import.
 no genomic variants, is unaffected, or has a negative result for every clinical test.
 
 The current repository has no report importer or sample-report browser workflow.
-[OLI-10](../linear-export/OLI/cohort-browser-v1/OLI-10-resolve-the-in-report-duplication-field-vs-join-table.md)
+[OLI-10](archive/linear-export/OLI/cohort-browser-v1/OLI-10-resolve-the-in-report-duplication-field-vs-join-table.md)
 tracks the authoritative relationship and flag decision. The Boolean in
 [SAMPLE_VARIANT_INDEX.md](SAMPLE_VARIANT_INDEX.md) is design-only and does not
 resolve Unknown versus None. Storage, token normalization, and the authoritative

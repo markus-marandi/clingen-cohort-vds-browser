@@ -1,18 +1,17 @@
 # Internal Sample-Variant Index (Design)
 
-> Main-baseline/design assessment: the separate `feat/internal-sample-browser`
-> branch now prepares TSV/MT export, sample/carrier APIs and browser views.
-> See [the pilot handoff](DRAGON_SAMPLE_PILOT_HANDOFF.md) for its current contract,
-> which preserves raw dates and nullable report membership. Real-data integration
-> is still pending. The broader design below is not the current pilot task list.
+> Broader design/reference material. For the current internal pilot, use
+> [release status](RELEASE_STATUS.md), [operations](OPERATIONS.md) and
+> [operator workflows](WORKFLOWS.md). Historical implementation assessments
+> below are not the current pilot's remaining task list.
 
 _Design for the internal, patient-linked indices that answer sample-level questions
 (UC-1, UC-2, UC-3). Card #82._
 
-This is a design, not an implemented index/export/API. The first release is
+This is the original broader index design; the pilot implements a smaller contract. The first release is
 GRCh37-only and internal-only. All authenticated internal users may see sample IDs.
 Public deployment and a separate public schema are outside v1. See
-[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for current assessments.
+[release status](RELEASE_STATUS.md) for current assessments.
 
 ---
 

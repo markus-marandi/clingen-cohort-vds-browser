@@ -46,3 +46,8 @@ venv/
 .vscode/
 *.swp
 .DS_Store
+
+# private deployment access and machine configuration
+.env
+.env.*
+*.local.env
